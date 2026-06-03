@@ -1,0 +1,188 @@
+.welcome-page {
+  min-height: 100vh;
+  height: 100vh;
+  width: 100%;
+  background-color: #1a1d26;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Georgia', serif;
+}
+
+.welcome-bg-doodle {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: repeat;
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.welcome-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 35%, rgba(10, 12, 18, 0.75) 100%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.welcome-border-frame {
+  position: absolute;
+  inset: 16px;
+  border: 1.5px solid rgba(107, 130, 196, 0.5);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 3;
+  animation: borderGlow 3s ease-in-out infinite;
+}
+
+.welcome-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;          /* tighter gap */
+  padding: 20px;
+}
+
+.welcome-logo-wrapper {
+  width: 380px;      /* bigger */
+  height: 380px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+
+.welcome-ring-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: center center;
+}
+
+.ring-clockwise {
+  animation: spinClockwise 8s linear infinite;
+  transform-origin: center center;
+}
+
+.ring-anticlockwise {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  animation: spinAnticlockwise 8s linear infinite;
+  transform-origin: center center;
+  opacity: 0.85;
+}
+
+.welcome-handshake-img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.welcome-text-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: -40px; /* pull text up closer to logo */
+}
+
+.welcome-title {
+  color: #ffffff;
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.025em;
+  text-align: center;
+}
+
+.welcome-subtitle {
+  color: #c8cde0;
+  font-size: 1.05rem;
+  font-weight: 400;
+  text-align: center;
+  letter-spacing: 0.05em;
+  margin: 0;
+  opacity: 0.85;
+}
+
+.welcome-buttons-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  margin-top: 20px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.welcome-buttons-container.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.welcome-btn {
+  padding: 12px 40px;
+  border-radius: 40px;
+  border: 2px solid transparent;
+  background-color: #4a5580;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Georgia', serif;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  min-width: 140px;
+  transition: all 0.25s ease;
+}
+
+.welcome-btn:hover {
+  background-color: #5d6a9a;
+  border-color: #8899d4;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(107, 127, 187, 0.35);
+}
+
+@keyframes spinClockwise {
+  from { transform: rotate(0deg) scaleY(0.6); }   /* less squish */
+  to   { transform: rotate(360deg) scaleY(0.6); }
+}
+
+@keyframes spinAnticlockwise {
+  from { transform: rotate(90deg) scaleY(0.6); }
+  to   { transform: rotate(-270deg) scaleY(0.6); }
+}
+
+@keyframes borderGlow {
+  0%, 100% { box-shadow: 0 0 10px rgba(107, 130, 196, 0.15); }
+  50%       { box-shadow: 0 0 26px rgba(107, 130, 196, 0.42); }
+}
+
+@media (max-width: 480px) {
+  .welcome-logo-wrapper {
+    width: 180px;
+    height: 180px;
+  }
+  .welcome-title    { font-size: 1.5rem; }
+  .welcome-subtitle { font-size: 0.88rem; }
+  .welcome-btn      { padding: 10px 28px; min-width: 110px; }
+}
