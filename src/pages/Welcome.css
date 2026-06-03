@@ -25,7 +25,11 @@
 .welcome-vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, transparent 35%, rgba(10, 12, 18, 0.75) 100%);
+  background: radial-gradient(
+    ellipse at center,
+    transparent 35%,
+    rgba(10, 12, 18, 0.75) 100%
+  );
   pointer-events: none;
   z-index: 2;
 }
@@ -47,17 +51,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;          /* tighter gap */
+  gap: 0;
   padding: 20px;
 }
 
+/* Smaller wrapper = less invisible dead space */
 .welcome-logo-wrapper {
-  width: 380px;      /* bigger */
-  height: 380px;
+  width: 250px;
+  height: 250px;
   position: relative;
   flex-shrink: 0;
 }
-
 
 .welcome-ring-img {
   position: absolute;
@@ -71,7 +75,6 @@
 
 .ring-clockwise {
   animation: spinClockwise 8s linear infinite;
-  transform-origin: center center;
 }
 
 .ring-anticlockwise {
@@ -82,7 +85,6 @@
   height: 100%;
   object-fit: contain;
   animation: spinAnticlockwise 8s linear infinite;
-  transform-origin: center center;
   opacity: 0.85;
 }
 
@@ -90,24 +92,25 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 60%;
-  height: 60%;
+  width: 58%;
+  height: 58%;
   object-fit: contain;
   transform: translate(-50%, -50%);
   z-index: 2;
 }
 
+/* Pull title much closer to logo */
 .welcome-text-group {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  margin-top: -40px; /* pull text up closer to logo */
+  margin-top: -25px;
 }
 
 .welcome-title {
   color: #ffffff;
-  font-size: 2.2rem;
+  font-size: 2.4rem;
   font-weight: 700;
   margin: 0;
   letter-spacing: 0.025em;
@@ -129,7 +132,8 @@
   align-items: center;
   justify-content: center;
   gap: 32px;
-  margin-top: 20px;
+  margin-top: 18px;
+
   opacity: 0;
   transform: translateY(10px);
   transition: opacity 0.5s ease, transform 0.5s ease;
@@ -163,18 +167,32 @@
 }
 
 @keyframes spinClockwise {
-  from { transform: rotate(0deg) scaleY(0.6); }   /* less squish */
-  to   { transform: rotate(360deg) scaleY(0.6); }
+  from {
+    transform: rotate(0deg) scaleY(0.6);
+  }
+  to {
+    transform: rotate(360deg) scaleY(0.6);
+  }
 }
 
 @keyframes spinAnticlockwise {
-  from { transform: rotate(90deg) scaleY(0.6); }
-  to   { transform: rotate(-270deg) scaleY(0.6); }
+  from {
+    transform: rotate(90deg) scaleY(0.6);
+  }
+  to {
+    transform: rotate(-270deg) scaleY(0.6);
+  }
 }
 
 @keyframes borderGlow {
-  0%, 100% { box-shadow: 0 0 10px rgba(107, 130, 196, 0.15); }
-  50%       { box-shadow: 0 0 26px rgba(107, 130, 196, 0.42); }
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(107, 130, 196, 0.15);
+  }
+
+  50% {
+    box-shadow: 0 0 26px rgba(107, 130, 196, 0.42);
+  }
 }
 
 @media (max-width: 480px) {
@@ -182,7 +200,17 @@
     width: 180px;
     height: 180px;
   }
-  .welcome-title    { font-size: 1.5rem; }
-  .welcome-subtitle { font-size: 0.88rem; }
-  .welcome-btn      { padding: 10px 28px; min-width: 110px; }
+
+  .welcome-title {
+    font-size: 1.6rem;
+  }
+
+  .welcome-subtitle {
+    font-size: 0.88rem;
+  }
+
+  .welcome-btn {
+    padding: 10px 28px;
+    min-width: 110px;
+  }
 }
