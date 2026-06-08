@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import "./Homepage.css";
 import chittagongCityImg from "../assets/chittagong-city-new.jpg";
 import feature1 from "../assets/buddy-new.webp";
@@ -9,27 +9,32 @@ import newcomerImg from "../assets/newcommer.jpg";
 import seniorImg from "../assets/senior.webp";
 import authorityImg from "../assets/authority.webp";
 import logo from "../assets/logo1.png";
-export default function Homepage() {
+
+export default function Homepage({ onLogout, onJoin, onBack, isGuest }) {
   const [isHero, setIsHero] = useState(true);
+  const didScrollRef = useRef(false);
 
   useEffect(() => {
     window.history.scrollRestoration = "manual";
+    window.scrollTo({ top: 0, behavior: "instant" });
 
-    window.scrollTo({
-      top: 0,
-      behavior: "instant",
-    });
+    // If arriving as guest (from "About Us"), scroll to #features after mount
+    if (isGuest && !didScrollRef.current) {
+      didScrollRef.current = true;
+      setTimeout(() => {
+        document
+          .getElementById("features")
+          ?.scrollIntoView({ behavior: "smooth" });
+      }, 120);
+    }
 
     const handleScroll = () => {
       setIsHero(window.scrollY < window.innerHeight - 100);
     };
-
     window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isGuest]);
 
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
   const [openFaq, setOpenFaq] = useState(null);
   const [currentFeature, setCurrentFeature] = useState(0);
 
@@ -71,6 +76,7 @@ export default function Homepage() {
         "Currently yes, but we plan to expand to other major university cities in Bangladesh.",
     },
   ];
+
   const features = [
     {
       tag: "Core Feature",
@@ -97,57 +103,67 @@ export default function Homepage() {
       image: feature4,
     },
   ];
+
   return (
     <div className="homepage">
       {/* NAVBAR */}
       <nav className={`navbar ${!isHero ? "navbar-solid" : ""}`}>
         <a href="/" className="nav-logo">
           <img src={logo} alt="PeerConnect Logo" className="logo-img" />
-
           <span className="logo-text">
             Peer<span className="logo-highlight">Connect</span>
           </span>
         </a>
 
         <div className="nav-actions">
-          <button className="btn btn-outline">Log in</button>
-          <button className="btn btn-solid">Sign up</button>
+          {isGuest ? (
+            <>
+              <button className="btn btn-outline" onClick={onBack}>
+                ← Back
+              </button>
+              <button className="btn btn-solid" onClick={onJoin}>
+                Sign up
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="btn btn-outline" onClick={onLogout}>
+                Log out
+              </button>
+              <button className="btn btn-solid" onClick={onJoin}>
+                Dashboard
+              </button>
+            </>
+          )}
         </div>
       </nav>
 
       {/* HERO */}
       <section className="hero">
-        <img
-          src={chittagongCityImg}
-          alt="Chittagong City"
-          className="hero-img"
-        />
-
+        <img src={chittagongCityImg} alt="Chittagong City" className="hero-img" />
         <div className="hero-overlay"></div>
-
         <div className="hero-content-box">
           <h1 className="hero-title">
-            New City.
-            <br />
-            New Campus.
-            <br />
+            New City.<br />
+            New Campus.<br />
             <span className="highlight">Same Community.</span>
           </h1>
-
           <p className="hero-description">
             Connect with experienced seniors from your hometown, discover
             trusted housing, transportation, food spots, and get the guidance
             you need to feel at home in Chattogram.
           </p>
-
           <div className="hero-buttons">
-            <button className="btn btn-primary">Explore</button>
+            {/* Explore → auth (sign up / log in) */}
+            <button className="btn btn-primary" onClick={onJoin}>
+              Explore
+            </button>
             <button
               className="btn btn-primary"
               onClick={() =>
                 document
                   .getElementById("features")
-                  .scrollIntoView({ behavior: "smooth" })
+                  ?.scrollIntoView({ behavior: "smooth" })
               }
             >
               Learn More
@@ -155,12 +171,13 @@ export default function Homepage() {
           </div>
         </div>
       </section>
+
+      {/* FEATURES */}
       <section id="features" className="features-section">
         <div className="feature-reel">
           <div className="feature-counter">
             {currentFeature + 1} / {features.length}
           </div>
-
           <div className="feature-row">
             <div className="feature-image">
               <img
@@ -168,16 +185,10 @@ export default function Homepage() {
                 alt={features[currentFeature].title}
               />
             </div>
-
             <div className="feature-content">
-              <span className="feature-tag">
-                {features[currentFeature].tag}
-              </span>
-
+              <span className="feature-tag">{features[currentFeature].tag}</span>
               <h2>{features[currentFeature].title}</h2>
-
               <p>{features[currentFeature].text}</p>
-
               {currentFeature < features.length - 1 ? (
                 <button
                   className="feature-btn"
@@ -191,7 +202,7 @@ export default function Homepage() {
                   onClick={() =>
                     document
                       .getElementById("who-section")
-                      .scrollIntoView({ behavior: "smooth" })
+                      ?.scrollIntoView({ behavior: "smooth" })
                   }
                 >
                   Continue →
@@ -202,10 +213,9 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* WHO WE SERVE SECTION */}
+      {/* WHO WE SERVE */}
       <section id="who-section" className="who-section">
         <h2 className="who-title">Who We Serve</h2>
-
         <div className="who-container">
           <div className="who-card">
             <img src={newcomerImg} alt="Newcomers" className="who-img" />
@@ -215,7 +225,6 @@ export default function Homepage() {
               senior from your district who knows Chittagong inside and out.
             </p>
           </div>
-
           <div className="who-card">
             <img src={seniorImg} alt="Seniors" className="who-img" />
             <h3>Seniors</h3>
@@ -224,7 +233,6 @@ export default function Homepage() {
               questions, and build trust through badges and reputation.
             </p>
           </div>
-
           <div className="who-card">
             <img src={authorityImg} alt="Authorities" className="who-img" />
             <h3>Authorities</h3>
@@ -235,52 +243,43 @@ export default function Homepage() {
           </div>
         </div>
       </section>
-      {/* REVIEWS SECTION */}
+
+      {/* REVIEWS */}
       <section className="reviews-section">
         <h2 className="reviews-title">What People Say About PeerConnect</h2>
-
         <div className="reviews-container">
-          {/* Senior Student */}
           <div className="review-card">
             <div className="stars">★★★★★</div>
-            <span className="student-tag senior">
-              Senior Student (4th Year)
-            </span>
-
+            <span className="student-tag senior">Senior Student (4th Year)</span>
             <p>
-              “I’ve been using PeerConnect to help junior students from my
+              "I've been using PeerConnect to help junior students from my
               district. It feels great guiding newcomers and making their
-              university life easier.”
+              university life easier."
             </p>
             <h4>- Tanvir Ahmed</h4>
           </div>
-
-          {/* Newcomer 1 */}
           <div className="review-card">
             <div className="stars">★★★★☆</div>
             <span className="student-tag fresher">1st Year Student</span>
-
             <p>
-              “As a new student in Chattogram, I had no idea where to start. My
-              buddy helped me find housing and settle within days.”
+              "As a new student in Chattogram, I had no idea where to start. My
+              buddy helped me find housing and settle within days."
             </p>
             <h4>- Nusrat Jahan</h4>
           </div>
-
-          {/* Newcomer 2 */}
           <div className="review-card">
             <div className="stars">★★★★★</div>
             <span className="student-tag fresher">1st Year Student</span>
-
             <p>
-              “PeerConnect made my transition smooth. I got guidance on
-              transport, food spots, and campus life from day one.”
+              "PeerConnect made my transition smooth. I got guidance on
+              transport, food spots, and campus life from day one."
             </p>
             <h4>- Arif Hossain</h4>
           </div>
         </div>
       </section>
-      {/* ========== NEW IMPACT SECTION ========== */}
+
+      {/* IMPACT */}
       <section className="impact-section">
         <div className="impact-container">
           <div className="impact-header">
@@ -294,7 +293,6 @@ export default function Homepage() {
               people finding housing, routes, and belonging.
             </p>
           </div>
-
           <div className="impact-stats-grid">
             <div className="stat-card">
               <div className="stat-number">64</div>
@@ -303,45 +301,37 @@ export default function Homepage() {
                 Students from every corner of Bangladesh finding their way
               </div>
             </div>
-
             <div className="stat-card">
-              <div className="stat-number">
-                800<span className="stat-plus">+</span>
-              </div>
+              <div className="stat-number">800<span className="stat-plus">+</span></div>
               <div className="stat-label">Active senior buddies</div>
               <div className="stat-description">
                 Experienced guides sharing knowledge and building trust
               </div>
             </div>
-
             <div className="stat-card">
-              <div className="stat-number">
-                2,400<span className="stat-plus">+</span>
-              </div>
+              <div className="stat-number">2,400<span className="stat-plus">+</span></div>
               <div className="stat-label">Students helped</div>
               <div className="stat-description">Growing stronger every day</div>
             </div>
-
             <div className="stat-card">
-              <div className="stat-number">
-                45<span className="stat-plus">+</span>
-              </div>
+              <div className="stat-number">45<span className="stat-plus">+</span></div>
               <div className="stat-label">Community events held</div>
               <div className="stat-description">
                 Connections made beyond screens and into real life
               </div>
             </div>
           </div>
-
           <div className="impact-footer">
-            <button className="impact-join-btn">
+            {/* Join the movement → auth */}
+            <button className="impact-join-btn" onClick={onJoin}>
               Join the movement
               <span className="btn-arrow">→</span>
             </button>
           </div>
         </div>
       </section>
-      {/* ========== TEAM SECTION (UPDATED with 3 members) ========== */}
+
+      {/* TEAM */}
       <section className="team-section">
         <div className="team-container">
           <div className="team-header">
@@ -352,9 +342,7 @@ export default function Homepage() {
               being new.
             </p>
           </div>
-
           <div className="team-grid">
-            {/* Founder - Nusrat Jahan */}
             <div className="team-card">
               <div className="team-avatar">
                 <div className="avatar-icon founder-icon">NJ</div>
@@ -368,8 +356,6 @@ export default function Homepage() {
               </p>
               <div className="team-tagline">✨ Visionary & Community-first</div>
             </div>
-
-            {/* Tech Lead - Asliraf Samaylan */}
             <div className="team-card">
               <div className="team-avatar">
                 <div className="avatar-icon tech-icon">AS</div>
@@ -383,8 +369,6 @@ export default function Homepage() {
               </p>
               <div className="team-tagline">⚡ Code & Infrastructure</div>
             </div>
-
-            {/* Product Lead - Samiha Akter */}
             <div className="team-card">
               <div className="team-avatar">
                 <div className="avatar-icon product-icon">SA</div>
@@ -399,17 +383,15 @@ export default function Homepage() {
               <div className="team-tagline">🎨 Design & User Experience</div>
             </div>
           </div>
-
-          {/* Hiring / Join callout */}
           <div className="team-hiring">
             <div className="hiring-content">
               <span className="hiring-badge">🚀 We're growing</span>
               <h3 className="hiring-title">Help us build PeerConnect</h3>
               <p className="hiring-text">
-                Support more students in Chittagong and beyond. Join our
-                mission.
+                Support more students in Chittagong and beyond. Join our mission.
               </p>
-              <button className="hiring-btn">
+              {/* Join us → auth */}
+              <button className="hiring-btn" onClick={onJoin}>
                 Join us
                 <span className="btn-arrow">→</span>
               </button>
@@ -417,7 +399,8 @@ export default function Homepage() {
           </div>
         </div>
       </section>
-      {/* ========== FAQ SECTION ========== */}
+
+      {/* FAQ */}
       <section className="faq-section">
         <div className="faq-container">
           <div className="faq-header">
@@ -428,7 +411,6 @@ export default function Homepage() {
               get started.
             </p>
           </div>
-
           <div className="faq-grid">
             {faqData.map((faq, index) => (
               <div className="faq-item" key={index}>
@@ -438,23 +420,16 @@ export default function Homepage() {
                 >
                   <span className="faq-icon">{faq.icon}</span>
                   <h3>{faq.question}</h3>
-                  <span
-                    className={`faq-arrow ${openFaq === index ? "open" : ""}`}
-                  >
+                  <span className={`faq-arrow ${openFaq === index ? "open" : ""}`}>
                     ⌄
                   </span>
                 </button>
-
-                <div
-                  className={`faq-answer ${openFaq === index ? "open" : ""}`}
-                >
+                <div className={`faq-answer ${openFaq === index ? "open" : ""}`}>
                   <p>{faq.answer}</p>
                 </div>
               </div>
             ))}
           </div>
-
-          {/* Still have questions CTA */}
           <div className="faq-contact">
             <div className="contact-card">
               <span className="contact-emoji">💬</span>
@@ -468,7 +443,7 @@ export default function Homepage() {
                 onClick={() =>
                   document
                     .getElementById("contact-section")
-                    .scrollIntoView({ behavior: "smooth" })
+                    ?.scrollIntoView({ behavior: "smooth" })
                 }
               >
                 Contact us
@@ -478,50 +453,37 @@ export default function Homepage() {
           </div>
         </div>
       </section>
-      {/* CONTACT SECTION */}
+
+      {/* CONTACT */}
       <section id="contact-section" className="contact-section">
         <div className="contact-wrapper">
           <span className="contact-badge">Get In Touch</span>
-
           <h2 className="contact-title">We'd Love To Hear From You</h2>
-
           <p className="contact-description">
             Have questions, suggestions, or need support? Reach out to the
             PeerConnect team and we'll get back to you as soon as possible.
           </p>
-
           <div className="contact-card-main">
             <div className="contact-icon">📧</div>
-
             <h3>Email Us</h3>
-
             <a href="mailto:peerconnect@gmail.com" className="contact-email">
               peerconnect@gmail.com
             </a>
-
             <p>We usually respond within 24 hours.</p>
           </div>
         </div>
       </section>
+
       {/* FOOTER */}
       <footer id="footer" className="footer">
         <div className="footer-container">
           <div className="footer-brand-new">
-            <img
-              src={logo}
-              alt="PeerConnect Logo"
-              className="footer-logo glow-logo"
-            />
-
-            <h2 className="footer-title">
-              Peer<span>Connect</span>
-            </h2>
-
+            <img src={logo} alt="PeerConnect Logo" className="footer-logo glow-logo" />
+            <h2 className="footer-title">Peer<span>Connect</span></h2>
             <p className="footer-subtitle">Connect and Guide</p>
           </div>
           <div className="footer-brand">
             <h2>PeerConnect</h2>
-
             <p>
               Helping students feel at home in a new city through trusted
               guidance, mentorship, and community support.
@@ -529,36 +491,28 @@ export default function Homepage() {
           </div>
           <div className="footer-links">
             <h4>Quick Links</h4>
-
             <a href="#features">Features</a>
             <a href="#who-section">Who We Serve</a>
             <a href="#contact-section">Contact</a>
           </div>
           <div className="footer-contact">
             <h4>Contact</h4>
-
             <p>peerconnect@gmail.com</p>
-
             <p>Chattogram, Bangladesh</p>
           </div>
         </div>
-
         <div className="footer-bottom">
           © 2026 PeerConnect. All rights reserved.
         </div>
       </footer>
+
       <button
         className="back-to-top"
         onClick={() => {
           if (isHero) {
-            document.getElementById("footer").scrollIntoView({
-              behavior: "smooth",
-            });
+            document.getElementById("footer")?.scrollIntoView({ behavior: "smooth" });
           } else {
-            window.scrollTo({
-              top: 0,
-              behavior: "smooth",
-            });
+            window.scrollTo({ top: 0, behavior: "smooth" });
           }
         }}
       >

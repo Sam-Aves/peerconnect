@@ -5,17 +5,42 @@ import Homepage from "./pages/Homepage";
 
 function App() {
   const [page, setPage] = useState("landing");
+  const go = (p) => setPage(p);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    go("landing");
+  };
 
   return (
     <>
       {page === "landing" && (
         <LandingPage
-          onAbout={() => alert("About Us - Coming Soon!")}
-          onJoin={() => setPage("auth")}
+          onJoin={() => go("auth")}
+          onAbout={() => go("about")}
         />
       )}
-      {page === "auth" && <AuthPage onLoginSuccess={() => setPage("home")} />}
-      {page === "home" && <Homepage />}
+      {page === "auth" && (
+        <AuthPage
+          onAuthSuccess={() => go("home")}
+          onBack={() => go("landing")}
+        />
+      )}
+      {/* "about" shows the marketing Homepage without the logged-in user context */}
+      {page === "about" && (
+        <Homepage
+          onJoin={() => go("auth")}
+          onBack={() => go("landing")}
+          isGuest
+        />
+      )}
+      {page === "home" && (
+        <Homepage
+          onLogout={handleLogout}
+          onJoin={() => go("auth")}
+        />
+      )}
     </>
   );
 }

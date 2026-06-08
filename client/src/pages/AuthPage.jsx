@@ -6,8 +6,6 @@ import {
   AlertCircle, Info, X
 } from "lucide-react";
 
-// ─── API BASE URL ──────────────────────────────────────────────────────────────
-// Change this if your server runs on a different port or domain in production
 const API_BASE = "http://localhost:5000/api";
 
 const FontLoader = () => {
@@ -256,7 +254,8 @@ const PaperCallout = ({ children, warn }) => (
 );
 
 // ─── LOGIN PAGE ────────────────────────────────────────────────────────────────
-function LoginPage({ onSwitch }) {
+// FIX: onAuthSuccess prop added so it can be called after successful login
+function LoginPage({ onSwitch, onAuthSuccess, onBack }) {
   const [email,setEmail]=useState("");
   const [pw,setPw]=useState("");
   const [showPw,setShowPw]=useState(false);
@@ -289,22 +288,21 @@ function LoginPage({ onSwitch }) {
       const data = await res.json();
 
       if (!res.ok) {
-        // Show the server's message (e.g. "Account pending admin verification")
         setServerError(data.message || "Login failed. Please try again.");
         setLoading(false);
         return;
       }
 
-      // Save token + user to localStorage so other pages can access it
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
       setLoading(false);
       setOk(true);
 
-      // TODO: Replace this with React Router navigation once you wire up routing
-      // e.g. navigate("/dashboard")
-      setTimeout(() => setOk(false), 2500);
+      // FIX: actually navigate to home after showing success tick
+      setTimeout(() => {
+        onAuthSuccess();
+      }, 900);
 
     } catch (err) {
       setServerError("Cannot reach server. Make sure the backend is running on port 5000.");
@@ -322,7 +320,6 @@ function LoginPage({ onSwitch }) {
 
       <PaperCallout>Sign in with your university email address.</PaperCallout>
 
-      {/* Server-level error banner (wrong password, unverified, etc.) */}
       {serverError && (
         <div style={{ display:"flex", alignItems:"flex-start", gap:8,
           background:"rgba(220,38,38,0.08)", border:`1px solid ${C.errorBorder}`,
@@ -348,8 +345,22 @@ function LoginPage({ onSwitch }) {
         }
       />
 
-      <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:18, marginTop:-8 }}>
-        <a href="#" style={{ fontFamily:"'DM Sans', sans-serif", fontSize:12, color:C.green, textDecoration:"none", fontWeight:600 }}>Forgot password?</a>
+      <div style={{ display:"flex", justifyContent:"space-between", marginBottom:18, marginTop:-8, alignItems:"center" }}>
+        {/* FIX: onBack wired to "← Landing" link so users can return without signing in */}
+        <button
+          onClick={onBack}
+          style={{ background:"none", border:"none", cursor:"pointer", padding:0,
+            fontFamily:"'DM Sans', sans-serif", fontSize:12, color:C.inkFaint,
+            display:"flex", alignItems:"center", gap:3 }}>
+          <ChevronLeft size={12}/> Back
+        </button>
+        {/* FIX: "Forgot password?" placeholder — alert until backend route exists */}
+        <button
+          onClick={() => alert("Password reset coming soon. Contact your admin for now.")}
+          style={{ background:"none", border:"none", cursor:"pointer", padding:0,
+            fontFamily:"'DM Sans', sans-serif", fontSize:12, color:C.green, fontWeight:600 }}>
+          Forgot password?
+        </button>
       </div>
 
       {ok
@@ -457,14 +468,9 @@ function RegisterPage({ onSwitch }) {
 
     if(step<2){setStep(s=>s+1);return;}
 
-    // ── STEP 3: Submit to backend ──────────────────────────────────────────────
     setLoading(true);
 
     try {
-      // NOTE: The current backend route only accepts JSON (no file upload yet).
-      // The student ID file is collected in the UI but not sent to the server
-      // until you add multer / file upload support to the backend.
-      // For now we send all text fields; file verification is done manually by admin.
       const res = await fetch(`${API_BASE}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -481,7 +487,6 @@ function RegisterPage({ onSwitch }) {
       const data = await res.json();
 
       if (!res.ok) {
-        // e.g. "Email already registered"
         setServerError(data.message || "Registration failed. Please try again.");
         setLoading(false);
         return;
@@ -574,7 +579,6 @@ function RegisterPage({ onSwitch }) {
             :"Use your official university email (.ac.bd or .edu)."}
         </PaperCallout>
 
-        {/* Server-level error banner for step 1 (e.g. duplicate email caught early) */}
         {serverError && (
           <div style={{ display:"flex", alignItems:"flex-start", gap:8,
             background:"rgba(220,38,38,0.08)", border:`1px solid ${C.errorBorder}`,
@@ -623,7 +627,6 @@ function RegisterPage({ onSwitch }) {
       {step===2 && <>
         <PaperCallout warn>Only JPG, PNG, WebP, or PDF accepted. Max 5 MB. Incorrect file types will be rejected.</PaperCallout>
 
-        {/* Server-level error banner for final submit */}
         {serverError && (
           <div style={{ display:"flex", alignItems:"flex-start", gap:8,
             background:"rgba(220,38,38,0.08)", border:`1px solid ${C.errorBorder}`,
@@ -746,7 +749,7 @@ function Notebook({ mode, children, pageColor, flipping, flipDir }) {
   );
 }
 
-export default function AuthPage() {
+export default function AuthPage({ onAuthSuccess, onBack }) {
   const [mode, setMode] = useState("login");
   const [flipping, setFlipping] = useState(false);
   const [flipDir, setFlipDir] = useState("Out");
@@ -857,9 +860,14 @@ export default function AuthPage() {
               transform: flipping ? "translateY(6px)" : "translateY(0)",
               transition: flipping ? "none" : "opacity 0.3s ease 0.12s, transform 0.3s ease 0.12s",
             }}>
+              {/* FIX: pass onAuthSuccess and onBack down to LoginPage */}
               {displayed==="login"
-                ? <LoginPage onSwitch={()=>switchTo("register")}/>
-                : <RegisterPage onSwitch={()=>switchTo("login")}/>
+                ? <LoginPage
+                    onSwitch={() => switchTo("register")}
+                    onAuthSuccess={onAuthSuccess}
+                    onBack={onBack}
+                  />
+                : <RegisterPage onSwitch={() => switchTo("login")} />
               }
             </div>
           </Notebook>
