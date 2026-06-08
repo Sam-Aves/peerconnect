@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import "./Welcome.css";
+import "./LandingPage.css";
 import handshakeImg from "../assets/handshake.png";
 import ringImg from "../assets/ring.png";
 import doodleImg from "../assets/doodle.png";
