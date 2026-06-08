@@ -6,6 +6,10 @@ import {
   AlertCircle, Info, X
 } from "lucide-react";
 
+// ─── API BASE URL ──────────────────────────────────────────────────────────────
+// Change this if your server runs on a different port or domain in production
+const API_BASE = "http://localhost:5000/api";
+
 const FontLoader = () => {
   useEffect(() => {
     const l = document.createElement("link");
@@ -251,6 +255,7 @@ const PaperCallout = ({ children, warn }) => (
   </div>
 );
 
+// ─── LOGIN PAGE ────────────────────────────────────────────────────────────────
 function LoginPage({ onSwitch }) {
   const [email,setEmail]=useState("");
   const [pw,setPw]=useState("");
@@ -258,6 +263,7 @@ function LoginPage({ onSwitch }) {
   const [errors,setErrors]=useState({});
   const [loading,setLoading]=useState(false);
   const [ok,setOk]=useState(false);
+  const [serverError,setServerError]=useState("");
 
   const validate=()=>{
     const e={};
@@ -271,10 +277,39 @@ function LoginPage({ onSwitch }) {
   const submit=async()=>{
     const e=validate();
     if(Object.keys(e).length){setErrors(e);return;}
+    setServerError("");
     setLoading(true);
-    await new Promise(r=>setTimeout(r,1400));
-    setLoading(false); setOk(true);
-    setTimeout(()=>setOk(false),2500);
+
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: pw }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Show the server's message (e.g. "Account pending admin verification")
+        setServerError(data.message || "Login failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Save token + user to localStorage so other pages can access it
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      setLoading(false);
+      setOk(true);
+
+      // TODO: Replace this with React Router navigation once you wire up routing
+      // e.g. navigate("/dashboard")
+      setTimeout(() => setOk(false), 2500);
+
+    } catch (err) {
+      setServerError("Cannot reach server. Make sure the backend is running on port 5000.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -287,13 +322,24 @@ function LoginPage({ onSwitch }) {
 
       <PaperCallout>Sign in with your university email address.</PaperCallout>
 
+      {/* Server-level error banner (wrong password, unverified, etc.) */}
+      {serverError && (
+        <div style={{ display:"flex", alignItems:"flex-start", gap:8,
+          background:"rgba(220,38,38,0.08)", border:`1px solid ${C.errorBorder}`,
+          borderRadius:7, padding:"9px 11px", marginBottom:14,
+        }}>
+          <AlertCircle size={13} color={C.error} strokeWidth={2} style={{ flexShrink:0, marginTop:1 }}/>
+          <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:12, color:C.error, margin:0, lineHeight:1.6 }}>{serverError}</p>
+        </div>
+      )}
+
       <PaperField label="University email" icon={Mail} type="email"
-        value={email} onChange={e=>{setEmail(e.target.value);setErrors(p=>({...p,email:""}));}}
+        value={email} onChange={e=>{setEmail(e.target.value);setErrors(p=>({...p,email:""}));setServerError("");}}
         placeholder="yourname@iiuc.ac.bd" error={errors.email}/>
 
       <PaperField label="Password" icon={Lock}
         type={showPw?"text":"password"}
-        value={pw} onChange={e=>{setPw(e.target.value);setErrors(p=>({...p,pw:""}));}}
+        value={pw} onChange={e=>{setPw(e.target.value);setErrors(p=>({...p,pw:""}));setServerError("");}}
         placeholder="Your password" error={errors.pw}
         right={
           <button onClick={()=>setShowPw(p=>!p)} style={{ background:"none",border:"none",cursor:"pointer",color:C.inkLight,padding:0,display:"flex" }}>
@@ -339,6 +385,7 @@ function LoginPage({ onSwitch }) {
   );
 }
 
+// ─── REGISTER PAGE ─────────────────────────────────────────────────────────────
 function RegisterPage({ onSwitch }) {
   const [step,setStep]=useState(0);
   const [d,setD]=useState({name:"",uni:"",district:"",role:"",email:"",pw:"",cpw:"",file:null});
@@ -348,6 +395,7 @@ function RegisterPage({ onSwitch }) {
   const [done,setDone]=useState(false);
   const [fileErr,setFileErr]=useState("");
   const [preview,setPreview]=useState(null);
+  const [serverError,setServerError]=useState("");
   const fileRef=useRef();
   const str=pwStr(d.pw);
   const set=(f,v)=>setD(p=>({...p,[f]:v}));
@@ -405,10 +453,47 @@ function RegisterPage({ onSwitch }) {
     const e=validate();
     if(Object.keys(e).length){setErrors(e);return;}
     setErrors({});
+    setServerError("");
+
     if(step<2){setStep(s=>s+1);return;}
+
+    // ── STEP 3: Submit to backend ──────────────────────────────────────────────
     setLoading(true);
-    await new Promise(r=>setTimeout(r,1800));
-    setLoading(false); setDone(true);
+
+    try {
+      // NOTE: The current backend route only accepts JSON (no file upload yet).
+      // The student ID file is collected in the UI but not sent to the server
+      // until you add multer / file upload support to the backend.
+      // For now we send all text fields; file verification is done manually by admin.
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name:       d.name,
+          university: d.uni,
+          district:   d.district,
+          role:       d.role,
+          email:      d.email,
+          password:   d.pw,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // e.g. "Email already registered"
+        setServerError(data.message || "Registration failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      setLoading(false);
+      setDone(true);
+
+    } catch (err) {
+      setServerError("Cannot reach server. Make sure the backend is running on port 5000.");
+      setLoading(false);
+    }
   };
 
   if(done) return (
@@ -488,8 +573,20 @@ function RegisterPage({ onSwitch }) {
             ?`For ${d.uni}, use your ${UNI_DOMAINS[d.uni][0]} email.`
             :"Use your official university email (.ac.bd or .edu)."}
         </PaperCallout>
+
+        {/* Server-level error banner for step 1 (e.g. duplicate email caught early) */}
+        {serverError && (
+          <div style={{ display:"flex", alignItems:"flex-start", gap:8,
+            background:"rgba(220,38,38,0.08)", border:`1px solid ${C.errorBorder}`,
+            borderRadius:7, padding:"9px 11px", marginBottom:14,
+          }}>
+            <AlertCircle size={13} color={C.error} strokeWidth={2} style={{ flexShrink:0, marginTop:1 }}/>
+            <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:12, color:C.error, margin:0, lineHeight:1.6 }}>{serverError}</p>
+          </div>
+        )}
+
         <PaperField label="University email" icon={Mail} type="email"
-          value={d.email} onChange={e=>{set("email",e.target.value);setErrors(p=>({...p,email:""}));}}
+          value={d.email} onChange={e=>{set("email",e.target.value);setErrors(p=>({...p,email:""}));setServerError("");}}
           placeholder={d.uni&&UNI_DOMAINS[d.uni]?.[0]?`yourname@${UNI_DOMAINS[d.uni][0]}`:"yourname@university.ac.bd"}
           error={errors.email}/>
         <div style={{ marginBottom:14 }}>
@@ -525,6 +622,18 @@ function RegisterPage({ onSwitch }) {
 
       {step===2 && <>
         <PaperCallout warn>Only JPG, PNG, WebP, or PDF accepted. Max 5 MB. Incorrect file types will be rejected.</PaperCallout>
+
+        {/* Server-level error banner for final submit */}
+        {serverError && (
+          <div style={{ display:"flex", alignItems:"flex-start", gap:8,
+            background:"rgba(220,38,38,0.08)", border:`1px solid ${C.errorBorder}`,
+            borderRadius:7, padding:"9px 11px", marginBottom:14,
+          }}>
+            <AlertCircle size={13} color={C.error} strokeWidth={2} style={{ flexShrink:0, marginTop:1 }}/>
+            <p style={{ fontFamily:"'DM Sans', sans-serif", fontSize:12, color:C.error, margin:0, lineHeight:1.6 }}>{serverError}</p>
+          </div>
+        )}
+
         <div onClick={()=>fileRef.current.click()} style={{
           border:`2px dashed ${fileErr||errors.file?C.errorBorder:d.file?C.green:"rgba(26,46,30,0.22)"}`,
           borderRadius:9, padding:"18px 14px", textAlign:"center", cursor:"pointer",
@@ -561,7 +670,7 @@ function RegisterPage({ onSwitch }) {
       </>}
 
       <div style={{ display:"flex",gap:8,marginTop:18 }}>
-        {step>0&&<InkBtn secondary onClick={()=>setStep(s=>s-1)}><ChevronLeft size={14}/> Back</InkBtn>}
+        {step>0&&<InkBtn secondary onClick={()=>{setStep(s=>s-1);setServerError("");}}><ChevronLeft size={14}/> Back</InkBtn>}
         <div style={{ flex:2 }}>
           <InkBtn onClick={next} loading={loading?"Submitting…":null}>
             {step===2?<><CheckCircle size={15}/> Submit</>:<>Continue <ChevronRight size={15}/></>}
