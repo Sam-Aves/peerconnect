@@ -1,22 +1,6 @@
 import { useState } from "react";
-<<<<<<< HEAD
-import Welcome from "./pages/LandingPage";
-import AuthPage from "./pages/AuthPage";
-
-function App() {
-  const [page, setPage] = useState("welcome");
-
-  return (
-    <>
-      {page === "welcome" && (
-        <Welcome
-          onAbout={() => alert("About Us - Coming Soon!")}
-          onJoin={() => setPage("auth")}
-        />
-      )}
-      {page === "auth" && <AuthPage />}
-=======
 import LandingPage from "./pages/LandingPage";
+import AuthPage from "./pages/AuthPage";
 import Homepage from "./pages/Homepage";
 
 function App() {
@@ -26,13 +10,12 @@ function App() {
     <>
       {page === "landing" && (
         <LandingPage
-          onAbout={() => setPage("home")}
-          onJoin={() => console.log("Join clicked")}
+          onAbout={() => alert("About Us - Coming Soon!")}
+          onJoin={() => setPage("auth")}
         />
       )}
-
+      {page === "auth" && <AuthPage onLoginSuccess={() => setPage("home")} />}
       {page === "home" && <Homepage />}
->>>>>>> origin/Nusrat-Frontend
     </>
   );
 }
