@@ -130,9 +130,20 @@ export default function Homepage({ onLogout, onJoin, onBack, isGuest }) {
               <button className="btn btn-outline" onClick={onLogout}>
                 Log out
               </button>
-              <button className="btn btn-solid" onClick={onJoin}>
-                Dashboard
-              </button>
+              <button
+              className="btn btn-solid"
+              onClick={() => {
+                const token = localStorage.getItem("token");
+
+                if (token) {
+                  window.location.reload();
+                } else {
+                  onJoin();
+                }
+              }}
+            >
+              Dashboard
+            </button>
             </>
           )}
         </div>
@@ -155,7 +166,18 @@ export default function Homepage({ onLogout, onJoin, onBack, isGuest }) {
           </p>
           <div className="hero-buttons">
             {/* Explore → auth (sign up / log in) */}
-            <button className="btn btn-primary" onClick={onJoin}>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                const token = localStorage.getItem("token");
+
+                if (token) {
+                  window.location.reload();
+                } else {
+                  onJoin();
+                }
+              }}
+            >
               Explore
             </button>
             <button

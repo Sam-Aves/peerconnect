@@ -2,9 +2,12 @@ import { useState } from "react";
 import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
 import Homepage from "./pages/Homepage";
-
+import PostingPage from "./pages/PostingPage";
 function App() {
-  const [page, setPage] = useState("landing");
+  const [page, setPage] = useState(() => {
+  const token = localStorage.getItem("token");
+  return token ? "feed" : "landing";
+});
   const go = (p) => setPage(p);
 
   const handleLogout = () => {
@@ -23,7 +26,7 @@ function App() {
       )}
       {page === "auth" && (
         <AuthPage
-          onAuthSuccess={() => go("home")}
+          onAuthSuccess={() => go("feed")}
           onBack={() => go("landing")}
         />
       )}
@@ -35,12 +38,12 @@ function App() {
           isGuest
         />
       )}
-      {page === "home" && (
-        <Homepage
-          onLogout={handleLogout}
-          onJoin={() => go("auth")}
-        />
-      )}
+      {page === "feed" && (
+      <PostingPage
+        onLogout={handleLogout}
+        onHome={() => go("about")}
+      />
+    )}
     </>
   );
 }
