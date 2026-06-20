@@ -212,5 +212,212 @@
   .welcome-btn {
     padding: 10px 28px;
     min-width: 110px;
+
+  }
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.lp-page {
+  height: 100vh;
+  width: 100%;
+
+  position: relative;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* 📸 FULL BACKGROUND IMAGE */
+.lp-bg-image {
+  position: absolute;
+  width: 110%;
+  height: 110%;
+
+  object-fit: cover;
+
+  z-index: 0;
+
+  filter: blur(6px) brightness(0.7) saturate(1.2);
+  transform: scale(1.05);
+}
+
+/* 🌑 DARK OVERLAY */
+.lp-overlay {
+  position: absolute;
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.55);
+
+  z-index: 1;
+}
+
+/* 🌟 GLOW */
+.lp-glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+
+  background: radial-gradient(circle, rgba(53,199,162,0.25), transparent 60%);
+
+  transform: translate(-50%, -50%);
+  filter: blur(90px);
+
+  pointer-events: none;
+
+  z-index: 2;
+
+  transition: left 0.15s ease, top 0.15s ease;
+}
+
+/* 🧊 GLASS CARD */
+.lp-glass {
+  position: relative;
+  z-index: 3;
+
+  width: 90%;
+  max-width: 520px;
+
+  padding: 50px;
+
+  border-radius: 24px;
+
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  text-align: center;
+
+  color: white;
+
+  box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+
+  animation: fadeUp 1s ease-out;
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* LOGO */
+.lp-logo {
+  width: 70px;
+  margin-bottom: 18px;
+
+  filter: drop-shadow(0 0 20px rgba(53,199,162,0.6));
+}
+
+/* TITLE */
+.lp-glass h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+}
+
+.lp-glass h1 span {
+  color: #35c7a2;
+}
+
+/* TAGLINE */
+.tagline {
+  margin-top: 10px;
+
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+
+  color: rgba(255,255,255,0.8);
+}
+
+/* DESCRIPTION */
+.desc {
+  margin-top: 18px;
+
+  font-size: 1.05rem;
+  line-height: 1.7;
+
+  color: rgba(255,255,255,0.65);
+}
+
+/* BUTTONS */
+.lp-buttons {
+  margin-top: 28px;
+
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.lp-buttons button {
+  padding: 12px 24px;
+
+  border-radius: 30px;
+
+  border: none;
+
+  cursor: pointer;
+
+  font-weight: 600;
+
+  transition: 0.3s ease;
+}
+
+/* OUTLINE */
+.lp-buttons button:first-child {
+  background: transparent;
+  border: 2px solid #35c7a2;
+  color: #35c7a2;
+}
+
+.lp-buttons button:first-child:hover {
+  background: #35c7a2;
+  color: black;
+}
+
+/* PRIMARY */
+.lp-buttons .primary {
+  background: #35c7a2;
+  color: black;
+
+  box-shadow: 0 12px 30px rgba(53,199,162,0.25);
+}
+
+.lp-buttons .primary:hover {
+  transform: translateY(-3px);
+}
+.lp-logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.lp-logo {
+  width: 75px;
+
+  filter: drop-shadow(0 0 18px rgba(53,199,162,0.6));
+
+  animation: floatLogo 3s ease-in-out infinite;
+}
+@keyframes floatLogo {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(0px);
   }
 }
