@@ -346,7 +346,6 @@ function LoginPage({ onSwitch, onAuthSuccess, onBack }) {
       />
 
       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:18, marginTop:-8, alignItems:"center" }}>
-        {/* FIX: onBack wired to "← Landing" link so users can return without signing in */}
         <button
           onClick={onBack}
           style={{ background:"none", border:"none", cursor:"pointer", padding:0,
