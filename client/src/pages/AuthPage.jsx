@@ -299,10 +299,13 @@ function LoginPage({ onSwitch, onAuthSuccess, onBack }) {
       setLoading(false);
       setOk(true);
 
-      // FIX: actually navigate to home after showing success tick
       setTimeout(() => {
-        onAuthSuccess();
-      }, 900);
+      if (data.user.isAdmin) {
+        onAuthSuccess("admin");
+      } else {
+        onAuthSuccess("feed");
+      }
+}, 900);
 
     } catch (err) {
       setServerError("Cannot reach server. Make sure the backend is running on port 5000.");

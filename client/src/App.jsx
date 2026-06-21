@@ -3,10 +3,21 @@ import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
 import Homepage from "./pages/Homepage";
 import PostingPage from "./pages/PostingPage";
+import AdminPage from "./pages/AdminPage";
+
 function App() {
   const [page, setPage] = useState(() => {
   const token = localStorage.getItem("token");
-  return token ? "feed" : "landing";
+
+  if (!token) return "landing";
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (user?.isAdmin) {
+    return "admin";
+  }
+
+  return "feed";
 });
   const go = (p) => setPage(p);
 
@@ -24,13 +35,14 @@ function App() {
           onAbout={() => go("about")}
         />
       )}
+
       {page === "auth" && (
         <AuthPage
-          onAuthSuccess={() => go("feed")}
+          onAuthSuccess={(page) => go(page)}
           onBack={() => go("landing")}
         />
       )}
-      {/* "about" shows the marketing Homepage without the logged-in user context */}
+
       {page === "about" && (
         <Homepage
           onJoin={() => go("auth")}
@@ -38,12 +50,19 @@ function App() {
           isGuest
         />
       )}
+
+      {page === "admin" && (
+        <AdminPage
+          onLogout={handleLogout}
+        />
+      )}
+
       {page === "feed" && (
-      <PostingPage
-        onLogout={handleLogout}
-        onHome={() => go("about")}
-      />
-    )}
+        <PostingPage
+          onLogout={handleLogout}
+          onHome={() => go("about")}
+        />
+      )}
     </>
   );
 }
