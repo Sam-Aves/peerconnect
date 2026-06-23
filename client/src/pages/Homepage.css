@@ -102,7 +102,64 @@ body {
 
 .nav-actions {
   display: flex;
+  align-items: center;
   gap: 12px;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 600;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.nav-link:hover {
+  opacity: 1;
+}
+
+.nav-username {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding-left: 4px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  padding-left: 12px;
+}
+
+/* Member pages (/feed, /profile) have a plain light background, not the
+   dark hero image Homepage has - this variant keeps the navbar always
+   solid and switches text to dark so it stays readable. */
+.navbar-light {
+  position: sticky;
+  background: white;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.navbar-light .logo-text {
+  color: #042C1F;
+}
+
+.navbar-light .nav-link {
+  color: #1a2e1e;
+}
+
+.navbar-light .nav-username {
+  color: #6a8e73;
+  border-left-color: rgba(4,44,31,0.12);
+}
+
+.navbar-light .btn-outline {
+  background: rgba(4,44,31,0.04);
+  border: 1px solid rgba(4,44,31,0.15);
+  color: #1a2e1e;
+}
+
+.navbar-light .btn-outline:hover {
+  background: rgba(220,38,38,0.08);
+  border-color: rgba(220,38,38,0.3);
+  color: #b91c1c;
 }
 
 /* ==================================

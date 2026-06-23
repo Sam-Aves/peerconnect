@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Mail, Lock, Eye, EyeOff, User, GraduationCap, MapPin,
   Search, Star, Upload, FileText, ChevronRight, ChevronLeft,
   CheckCircle, Shield, Handshake, ArrowRight, ExternalLink,
   AlertCircle, Info, X
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 const API_BASE = "http://localhost:5000/api";
 
@@ -254,8 +256,9 @@ const PaperCallout = ({ children, warn }) => (
 );
 
 // ─── LOGIN PAGE ────────────────────────────────────────────────────────────────
-// FIX: onAuthSuccess prop added so it can be called after successful login
-function LoginPage({ onSwitch, onAuthSuccess, onBack }) {
+function LoginPage({ onSwitch }) {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [email,setEmail]=useState("");
   const [pw,setPw]=useState("");
   const [showPw,setShowPw]=useState(false);
@@ -293,19 +296,14 @@ function LoginPage({ onSwitch, onAuthSuccess, onBack }) {
         return;
       }
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      login(data.token, data.user);
 
       setLoading(false);
       setOk(true);
 
       setTimeout(() => {
-      if (data.user.isAdmin) {
-        onAuthSuccess("admin");
-      } else {
-        onAuthSuccess("feed");
-      }
-}, 900);
+        navigate(data.user.isAdmin ? "/admin/dashboard" : "/feed", { replace: true });
+      }, 900);
 
     } catch (err) {
       setServerError("Cannot reach server. Make sure the backend is running on port 5000.");
@@ -350,13 +348,13 @@ function LoginPage({ onSwitch, onAuthSuccess, onBack }) {
 
       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:18, marginTop:-8, alignItems:"center" }}>
         <button
-          onClick={onBack}
+          onClick={() => navigate("/")}
           style={{ background:"none", border:"none", cursor:"pointer", padding:0,
             fontFamily:"'DM Sans', sans-serif", fontSize:12, color:C.inkFaint,
             display:"flex", alignItems:"center", gap:3 }}>
           <ChevronLeft size={12}/> Back
         </button>
-        {/* FIX: "Forgot password?" placeholder — alert until backend route exists */}
+        {/* "Forgot password?" placeholder - alert until backend route exists */}
         <button
           onClick={() => alert("Password reset coming soon. Contact your admin for now.")}
           style={{ background:"none", border:"none", cursor:"pointer", padding:0,
@@ -390,9 +388,11 @@ function LoginPage({ onSwitch, onAuthSuccess, onBack }) {
         </button>
       </p>
       <div style={{ textAlign:"center", marginTop:8 }}>
-        <a href="/admin/login" style={{ display:"inline-flex",alignItems:"center",gap:4,fontFamily:"'DM Sans', sans-serif",fontSize:11,color:C.inkFaint,textDecoration:"none" }}>
+        <button
+          onClick={() => navigate("/admin/login")}
+          style={{ display:"inline-flex",alignItems:"center",gap:4,fontFamily:"'DM Sans', sans-serif",fontSize:11,color:C.inkFaint,textDecoration:"none",background:"none",border:"none",cursor:"pointer",padding:0 }}>
           Admin portal <ExternalLink size={10}/>
-        </a>
+        </button>
       </div>
     </div>
   );
@@ -400,6 +400,7 @@ function LoginPage({ onSwitch, onAuthSuccess, onBack }) {
 
 // ─── REGISTER PAGE ─────────────────────────────────────────────────────────────
 function RegisterPage({ onSwitch }) {
+  const navigate = useNavigate();
   const [step,setStep]=useState(0);
   const [d,setD]=useState({name:"",uni:"",district:"",role:"",email:"",pw:"",cpw:"",file:null});
   const [errors,setErrors]=useState({});
@@ -531,6 +532,14 @@ function RegisterPage({ onSwitch }) {
           {["Tell us who you are","Secure your account","Prove you're a student"][step]}
         </p>
       </div>
+
+      <button
+        onClick={() => (step === 0 ? navigate("/") : setStep(s => s - 1))}
+        style={{ background:"none", border:"none", cursor:"pointer", padding:0,
+          fontFamily:"'DM Sans', sans-serif", fontSize:12, color:C.inkFaint,
+          display:"flex", alignItems:"center", gap:3, marginBottom:14 }}>
+        <ChevronLeft size={12}/> Back
+      </button>
 
       <StepDots n={3} cur={step}/>
 
@@ -751,7 +760,7 @@ function Notebook({ mode, children, pageColor, flipping, flipDir }) {
   );
 }
 
-export default function AuthPage({ onAuthSuccess, onBack }) {
+export default function AuthPage() {
   const [mode, setMode] = useState("login");
   const [flipping, setFlipping] = useState(false);
   const [flipDir, setFlipDir] = useState("Out");
@@ -862,12 +871,9 @@ export default function AuthPage({ onAuthSuccess, onBack }) {
               transform: flipping ? "translateY(6px)" : "translateY(0)",
               transition: flipping ? "none" : "opacity 0.3s ease 0.12s, transform 0.3s ease 0.12s",
             }}>
-              {/* FIX: pass onAuthSuccess and onBack down to LoginPage */}
               {displayed==="login"
                 ? <LoginPage
                     onSwitch={() => switchTo("register")}
-                    onAuthSuccess={onAuthSuccess}
-                    onBack={onBack}
                   />
                 : <RegisterPage onSwitch={() => switchTo("login")} />
               }

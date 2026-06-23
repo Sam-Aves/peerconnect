@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "./Homepage.css";
 import chittagongCityImg from "../assets/chittagong-city-new.jpg";
 import feature1 from "../assets/buddy-new.webp";
@@ -21,9 +23,30 @@ import ContactSection from "../components/ContactSection";
 import Footer from "../components/Footer";
 import BackToTopButton from "../components/BackToTopButton";
 
-export default function Homepage({ onLogout, onJoin, onBack, isGuest }) {
+// isGuest is the one prop still passed explicitly, from App.jsx's route
+// definition (<Homepage isGuest /> on /about) - it's a per-route display
+// flag, not something to derive from auth state, since a logged-in admin
+// could still land on /about and should see the same guest-flavored copy.
+// onLogout/onJoin/onBack used to be threaded down from App.jsx's go()
+// state machine - now Homepage gets them itself from router + auth context.
+export default function Homepage({ isGuest: forceGuest }) {
+  const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
+  // /about always passes isGuest explicitly (forceGuest), so visiting the
+  // marketing page never depends on login state. Anywhere Homepage is
+  // reached without that explicit flag, fall back to real auth state:
+  // logged-in users see the member navbar (Log out / Dashboard), everyone
+  // else sees the guest navbar (Back / Sign up).
+  const isGuest = forceGuest ?? !isAuthenticated;
   const [isHero, setIsHero] = useState(true);
   const didScrollRef = useRef(false);
+
+  const handleJoin = () => navigate("/auth");
+  const handleBack = () => navigate("/");
+  const handleLogout = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
 
   useEffect(() => {
     window.history.scrollRestoration = "manual";
@@ -122,13 +145,13 @@ export default function Homepage({ onLogout, onJoin, onBack, isGuest }) {
   logo={logo}
   isHero={isHero}
   isGuest={isGuest}
-  onBack={onBack}
-  onJoin={onJoin}
-  onLogout={onLogout}
+  onBack={handleBack}
+  onJoin={handleJoin}
+  onLogout={handleLogout}
 />
 
       {/* HERO */}
-      <HeroSection chittagongCityImg={chittagongCityImg} onJoin={onJoin} />
+      <HeroSection chittagongCityImg={chittagongCityImg} onJoin={handleJoin} />
 
       {/* FEATURES */}
       <FeaturesSection
@@ -148,10 +171,10 @@ export default function Homepage({ onLogout, onJoin, onBack, isGuest }) {
      <ReviewsSection />
 
       {/* IMPACT */}
-      <ImpactSection onJoin={onJoin} />
+      <ImpactSection onJoin={handleJoin} />
 
       {/* TEAM */}
-      <TeamSection onJoin={onJoin} />
+      <TeamSection onJoin={handleJoin} />
 
       {/* FAQ */}
       <FAQSection

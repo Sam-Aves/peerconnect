@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import {
-  Clock, LogOut, Search, CheckCircle, UserCheck, ShieldCheck,
+  Clock, LogOut, Search, CheckCircle, UserCheck, ShieldCheck, AlertCircle,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const styles = `
   @import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@700;900&family=DM+Sans:wght@400;500;700&display=swap");
@@ -451,6 +453,34 @@ const styles = `
 
   .empty-text { font-size: 0.92rem; color: #6a8e73; }
 
+  .error-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(220,38,38,0.06);
+    border: 1px solid rgba(220,38,38,0.2);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+    color: #b91c1c;
+  }
+
+  .retry-btn {
+    margin-left: auto;
+    background: #fff;
+    border: 1px solid rgba(220,38,38,0.3);
+    color: #b91c1c;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .retry-btn:hover { background: rgba(220,38,38,0.06); }
+
   .loading-row {
     background: #fff;
     border: 1px solid rgba(4,44,31,0.06);
@@ -505,14 +535,6 @@ const styles = `
   }
 `;
 
-const MOCK_USERS = [
-  { _id: "1", name: "Tanvir Ahmed",  email: "tanvir@cu.ac.bd",   university: "Chittagong University", role: "seeker", joinedAt: "Jun 20, 2026" },
-  { _id: "2", name: "Nusrat Jahan",  email: "nusrat@cuet.ac.bd", university: "CUET",                  role: "helper", joinedAt: "Jun 20, 2026" },
-  { _id: "3", name: "Arif Hossain",  email: "arif@cu.ac.bd",     university: "Chittagong University", role: "both",   joinedAt: "Jun 21, 2026" },
-  { _id: "4", name: "Samiha Akter",  email: "samiha@ciu.edu.bd", university: "CIU",                   role: "seeker", joinedAt: "Jun 21, 2026" },
-  { _id: "5", name: "Karim Uddin",   email: "karim@cu.ac.bd",    university: "Chittagong University", role: "helper", joinedAt: "Jun 22, 2026" },
-];
-
 const ROLE_LABEL = { seeker: "Newcomer", helper: "Buddy", both: "Both" };
 
 function getInitials(name) {
@@ -523,15 +545,22 @@ function getRoleClass(role) {
   return { seeker: "role-seeker", helper: "role-helper", both: "role-both" }[role] ?? "role-seeker";
 }
 
-export default function AdminPage({ onLogout }) {
+export default function AdminPage() {
+  const { token, logout } = useAuth();
+  const navigate = useNavigate();
+
   const [users, setUsers]     = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState("");
   const [filter, setFilter]   = useState("All");
   const [search, setSearch]   = useState("");
   const [toast, setToast]     = useState(null);
   const [now, setNow]         = useState(new Date());
 
-  const token = typeof localStorage !== "undefined" ? localStorage.getItem("token") : null;
+  const handleLogout = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
 
   useEffect(() => {
     const tick = setInterval(() => setNow(new Date()), 60000);
@@ -540,14 +569,34 @@ export default function AdminPage({ onLogout }) {
 
   const fetchPendingUsers = async () => {
     setLoading(true);
+    setError("");
     try {
-      const res  = await fetch("http://localhost:5000/api/admin/pending-users", {
+      const res = await fetch("http://localhost:5000/api/admin/pending-users", {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      if (res.status === 401 || res.status === 403) {
+        // Token expired or this account lost admin rights mid-session -
+        // don't show stale/fake data, send them back to log in again.
+        logout();
+        navigate("/", { replace: true });
+        return;
+      }
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.message || "Could not load pending users.");
+        setUsers([]);
+        return;
+      }
+
       const data = await res.json();
       setUsers(data);
     } catch {
-      setUsers(MOCK_USERS);
+      // Real network failure (server down) - say so plainly instead of
+      // quietly switching to fake demo users, which used to hide this.
+      setError("Cannot reach the server. Make sure the backend is running on port 5000.");
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -557,17 +606,25 @@ export default function AdminPage({ onLogout }) {
 
   const verifyUser = async (id, name) => {
     try {
-      await fetch(`http://localhost:5000/api/admin/verify/${id}`, {
+      const res = await fetch(`http://localhost:5000/api/admin/verify/${id}`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
       });
-    } catch { /* optimistic */ }
-    setUsers(prev => prev.filter(u => u._id !== id));
-    showToast(`${name} verified`);
+
+      if (!res.ok) {
+        showToast(`Could not verify ${name} - try again`, true);
+        return;
+      }
+
+      setUsers(prev => prev.filter(u => u._id !== id));
+      showToast(`${name} verified`);
+    } catch {
+      showToast(`Could not verify ${name} - check your connection`, true);
+    }
   };
 
-  const showToast = (msg) => {
-    setToast(msg);
+  const showToast = (msg, isError = false) => {
+    setToast({ msg, isError });
     setTimeout(() => setToast(null), 2800);
   };
 
@@ -622,7 +679,7 @@ export default function AdminPage({ onLogout }) {
             </nav>
 
             <div className="sidebar-footer">
-              <button className="logout-btn" onClick={onLogout}>
+              <button className="logout-btn" onClick={handleLogout}>
                 <LogOut size={15} />
                 Log out
               </button>
@@ -684,11 +741,22 @@ export default function AdminPage({ onLogout }) {
               </div>
             </div>
 
+            {/* ERROR */}
+            {error && (
+              <div className="error-banner">
+                <AlertCircle size={16} />
+                {error}
+                <button className="retry-btn" onClick={fetchPendingUsers}>
+                  Retry
+                </button>
+              </div>
+            )}
+
             {/* USER ROWS */}
             <div className="user-grid">
               {loading ? (
                 [1, 2, 3].map(i => <div key={i} className="loading-row" />)
-              ) : filtered.length === 0 ? (
+              ) : error ? null : filtered.length === 0 ? (
                 <div className="empty-state">
                   <CheckCircle size={36} color="#35c7a2" strokeWidth={1.5} />
                   <div className="empty-text">
@@ -727,9 +795,9 @@ export default function AdminPage({ onLogout }) {
         </div>
 
         {toast && (
-          <div className="toast">
-            <ShieldCheck size={15} />
-            {toast}
+          <div className="toast" style={toast.isError ? { color: "#ff7b7b", borderColor: "rgba(255,123,123,0.3)" } : undefined}>
+            {toast.isError ? <AlertCircle size={15} /> : <ShieldCheck size={15} />}
+            {toast.msg}
           </div>
         )}
       </div>

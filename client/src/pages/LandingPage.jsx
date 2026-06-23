@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./LandingPage.css";
 import logo from "../assets/logo1.png";
 import heroImg from "../assets/Ai-image.png";
 
-export default function LandingPage({ onAbout, onJoin }) {
+export default function LandingPage() {
+  const navigate = useNavigate();
   const [mouse, setMouse] = useState({ x: 50, y: 50 });
 
   useEffect(() => {
@@ -36,9 +38,9 @@ export default function LandingPage({ onAbout, onJoin }) {
           and real connections in a new city.
         </p>
         <div className="lp-buttons">
-          {/* About Us → Homepage guest view, auto-scrolls to #features */}
-          <button onClick={onAbout}>About Us</button>
-          <button className="primary" onClick={onJoin}>Get Started</button>
+          {/* About Us -> Homepage guest view, auto-scrolls to #features */}
+          <button onClick={() => navigate("/about")}>About Us</button>
+          <button className="primary" onClick={() => navigate("/auth")}>Get Started</button>
         </div>
       </div>
     </div>

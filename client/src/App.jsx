@@ -1,70 +1,48 @@
-import { useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import RequireAuth from "./routes/RequireAuth";
+import RequireAdmin from "./routes/RequireAdmin";
+import AppLayout from "./components/AppLayout";
+
 import LandingPage from "./pages/LandingPage";
-import AuthPage from "./pages/AuthPage";
 import Homepage from "./pages/Homepage";
+import AuthPage from "./pages/AuthPage";
 import PostingPage from "./pages/PostingPage";
 import AdminPage from "./pages/AdminPage";
 
-function App() {
-  const [page, setPage] = useState(() => {
-  const token = localStorage.getItem("token");
-
-  if (!token) return "landing";
-
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  if (user?.isAdmin) {
-    return "admin";
-  }
-
-  return "feed";
-});
-  const go = (p) => setPage(p);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    go("landing");
-  };
-
+export default function App() {
   return (
-    <>
-      {page === "landing" && (
-        <LandingPage
-          onJoin={() => go("auth")}
-          onAbout={() => go("about")}
-        />
-      )}
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/about" element={<Homepage isGuest />} />
+          <Route path="/auth" element={<AuthPage />} />
 
-      {page === "auth" && (
-        <AuthPage
-          onAuthSuccess={(page) => go(page)}
-          onBack={() => go("landing")}
-        />
-      )}
+          {/* Logged-in members */}
+          <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
+            <Route path="/feed" element={<PostingPage />} />
+            <Route path="/profile" element={<ProfilePlaceholder />} />
+          </Route>
 
-      {page === "about" && (
-        <Homepage
-          onJoin={() => go("auth")}
-          onBack={() => go("landing")}
-          isGuest
-        />
-      )}
+          {/* Admins only */}
+          <Route
+            path="/admin/dashboard"
+            element={<RequireAdmin><AdminPage /></RequireAdmin>}
+          />
 
-      {page === "admin" && (
-        <AdminPage
-          onLogout={handleLogout}
-        />
-      )}
-
-      {page === "feed" && (
-        <PostingPage
-          onLogout={handleLogout}
-          onHome={() => go("about")}
-        />
-      )}
-    </>
+          <Route path="*" element={<LandingPage />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
-export default App;
+function ProfilePlaceholder() {
+  return (
+    <div style={{ padding: 40, textAlign: "center", color: "#888" }}>
+      Profile page coming soon.
+    </div>
+  );
+}
