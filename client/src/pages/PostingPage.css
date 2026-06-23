@@ -1,0 +1,75 @@
+.posting-page {
+  min-height: 100vh;
+  background: #f0f2f5;
+}
+
+.posting-navbar {
+  background: white;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.posting-navbar h2 {
+  color: #35c7a2;
+}
+
+.posting-navbar-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.posting-navbar-actions button {
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.posting-logout-btn {
+  background: #ff4d4f;
+  color: white;
+}
+
+.posting-feed {
+  max-width: 700px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
+
+.posting-card {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.posting-card h3,
+.posting-card h4 {
+  color: #222;
+}
+
+.posting-card input {
+  width: 100%;
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.posting-card button {
+  margin-top: 12px;
+  padding: 10px 20px;
+  background: #35c7a2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+}
+
+.posting-card p {
+  color: #555;
+  margin-top: 10px;
+}
