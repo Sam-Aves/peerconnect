@@ -155,8 +155,13 @@ postSchema.methods.markResolved = function(helperId) {
   this.resolvedAt = new Date();
 };
 
-// Ensure virtuals are included in JSON output
-postSchema.set('toJSON', { virtuals: true });
-postSchema.set('toObject', { virtuals: true });
+// ─── Virtuals ───
+postSchema.virtual('commentCount').get(function() {
+  return this.comments ? this.comments.length : 0;
+});
+
+postSchema.virtual('likeCount').get(function() {
+  return this.likes ? this.likes.length : 0;
+});
 
 module.exports = mongoose.model("Post", postSchema);

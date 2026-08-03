@@ -10,21 +10,36 @@ const createNotification = async (recipientId, senderId, type, postId, message) 
       post: postId,
       message,
     });
+    console.log("✅ Notification created");
   } catch (error) {
-    console.error("Error creating notification:", error);
+    console.error("❌ Error creating notification:", error);
   }
 };
 
 const getNotifications = async (req, res) => {
   try {
+    console.log("📡 Fetching notifications for user:", req.user?.id);
+
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ notifications: [] });
+    }
+
     const notifications = await Notification.find({ recipient: req.user.id })
-      .populate("sender", "name profile_photo")
+      .populate("sender", "name")
       .populate("post", "content")
       .sort({ createdAt: -1 })
       .limit(50);
-    res.json({ notifications });
+
+    // সেফটি – সবসময় array return করবে
+    const safeNotifications = notifications || [];
+    console.log(`✅ Found ${safeNotifications.length} notifications`);
+
+    res.json({ notifications: safeNotifications });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("❌ Error in getNotifications:", error);
+    // Error হলেও empty array return করবে
+    res.status(500).json({ notifications: [], message: error.message });
   }
 };
 
