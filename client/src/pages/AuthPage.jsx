@@ -471,18 +471,25 @@ function RegisterPage({ onSwitch }) {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name:       d.name,
-          university: d.uni,
-          district:   d.district,
-          role:       d.role,
-          email:      d.email,
-          password:   d.pw,
-        }),
-      });
+    const formData = new FormData();
+
+        formData.append("name", d.name);
+        formData.append("university", d.uni);
+        formData.append("district", d.district);
+        formData.append("role", d.role);
+        formData.append("email", d.email);
+        formData.append("password", d.pw);
+
+        // upload the file
+        formData.append("id_card_photo", d.file);
+
+        // optional profile picture
+        // formData.append("profile_photo", someFile);
+
+        const res = await fetch(`${API_BASE}/auth/register`, {
+          method: "POST",
+          body: formData,
+        });
 
       const data = await res.json();
 

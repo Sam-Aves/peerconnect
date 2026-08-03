@@ -2,9 +2,14 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+// =======================
 // REGISTER
+// =======================
+
 const registerUser = async (req, res) => {
   try {
+    console.log("BODY:", req.body);
+    console.log("FILES:", req.files);
     const { name, university, district, role, email, password } = req.body;
 
     if (!name || !university || !district || !role || !email || !password) {
@@ -21,6 +26,19 @@ const registerUser = async (req, res) => {
       });
     }
 
+   // Uploaded files
+    const profilePhoto =
+      req.files?.profile_photo?.[0]
+        ? `uploads/${req.files.profile_photo[0].filename}`
+        : "";
+
+    const idCardPhoto =
+      req.files?.id_card_photo?.[0]
+        ? `uploads/${req.files.id_card_photo[0].filename}`
+        : "";
+
+    console.log("Uploaded Files:", req.files);
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -30,6 +48,10 @@ const registerUser = async (req, res) => {
       role,
       email,
       password: hashedPassword,
+
+      profile_photo: profilePhoto,
+      id_card_photo: idCardPhoto,
+
       verified: false
     });
 
@@ -37,14 +59,20 @@ const registerUser = async (req, res) => {
       message: "Registration successful. Pending admin verification.",
       user: {
         id: user._id,
-        name,
-        email,
-        role,
-        verified: false
+        name: user.name,
+        university: user.university,
+        district: user.district,
+        role: user.role,
+        email: user.email,
+        profile_photo: user.profile_photo,
+        id_card_photo: user.id_card_photo,
+        verified: user.verified
       }
     });
 
   } catch (err) {
+    console.error(err);
+
     res.status(500).json({
       message: "Server error",
       error: err.message
@@ -52,7 +80,10 @@ const registerUser = async (req, res) => {
   }
 };
 
+// =======================
 // LOGIN
+// =======================
+
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -82,26 +113,26 @@ const loginUser = async (req, res) => {
       });
     }
 
-    if (!user.verified) {
-      return res.status(403).json({
-        message: "Account pending admin verification"
-      });
-    }
+    if (!user.verified && !user.isAdmin) {
+    return res.status(403).json({
+      message: "Account pending admin verification"
+    });
+}
 
     const token = jwt.sign(
-    {
+      {
         id: user._id,
         email: user.email,
         role: user.role,
         isAdmin: user.isAdmin
-    },
-    process.env.JWT_SECRET,
-    {
+      },
+      process.env.JWT_SECRET,
+      {
         expiresIn: "7d"
-    }
+      }
     );
 
-      res.json({
+    res.json({
       message: "Login successful",
       token,
       user: {
@@ -109,7 +140,9 @@ const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        isAdmin: user.isAdmin
+        isAdmin: user.isAdmin,
+        profile_photo: user.profile_photo,
+        id_card_photo: user.id_card_photo
       }
     });
 
@@ -120,7 +153,6 @@ const loginUser = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   registerUser,
