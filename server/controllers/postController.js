@@ -56,6 +56,9 @@ const getPosts = async (req, res) => {
         comments: post.comments
           ? post.comments.map((c) => ({
               id: c._id,
+              // FIX: expose the comment author's id so the frontend can determine
+              // whether the current user is allowed to delete this comment.
+              authorId: c.author,
               authorName: c.authorName || "Unknown",
               content: c.content,
               createdAt: c.createdAt,
@@ -177,6 +180,7 @@ const createPost = async (req, res) => {
         title: post.title,
         content: post.description,
         authorName: post.is_anonymous ? "Anonymous" : post.authorName,
+        authorId: post.author,
         type: post.type,
         category: post.category,
         createdAt: post.createdAt,
@@ -300,6 +304,7 @@ const addComment = async (req, res) => {
       message: "Comment added successfully",
       comment: {
         id: comment._id,
+        authorId: comment.author,
         authorName: comment.authorName,
         content: comment.content,
         createdAt: comment.createdAt,
@@ -542,6 +547,7 @@ const getSavedPosts = async (req, res) => {
       title: post.title,
       content: post.description,
       authorName: post.authorName || post.author?.name || "Unknown",
+      authorId: post.author?._id || post.author,
       type: post.type,
       category: post.category,
       createdAt: post.createdAt,
@@ -551,6 +557,8 @@ const getSavedPosts = async (req, res) => {
       comments: post.comments
         ? post.comments.map((c) => ({
             id: c._id,
+            // FIX: expose the comment author's id (same fix as getPosts above)
+            authorId: c.author,
             authorName: c.authorName || "Unknown",
             content: c.content,
             createdAt: c.createdAt,

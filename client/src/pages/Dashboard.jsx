@@ -80,6 +80,14 @@ const timeAgo = (dateStr) => {
 const getCategoryLabel = (value) => CATEGORIES.find(c => c.value === value)?.label || value;
 const getTypeLabel = (value) => POST_TYPES.find(t => t.value === value)?.label || value;
 
+// Loosely compares two ids that may be strings, ObjectIds, or nested author objects
+const sameId = (a, b) => a != null && b != null && String(a) === String(b);
+const isCommentOwner = (currentUser, post, comment) => {
+  if (!currentUser) return false;
+  const commentAuthorId = comment.authorId ?? comment.userId ?? comment.author?._id ?? comment.author?.id ?? comment.author;
+  return sameId(currentUser.id, commentAuthorId) || sameId(currentUser.id, post.authorId);
+};
+
 // ─── AVATAR ──────────────────────────────────────────────────────────────
 const Avatar = ({ name, size = 40, theme }) => {
   const colors = ["#1b6336", "#134a27", "#10b981", "#065f46", "#0f766e"];
@@ -111,6 +119,56 @@ const Badge = ({ label, type = "neutral", theme }) => {
       borderRadius: "12px", fontSize: "11px", fontWeight: 500,
       background: s.bg, color: s.color, border: `1px solid ${theme.border}`, whiteSpace: "nowrap",
     }}>{label}</span>
+  );
+};
+
+// ─── TOAST ───────────────────────────────────────────────────────────────
+const Toast = ({ toast, theme }) => {
+  if (!toast) return null;
+  const isError = toast.type === "error";
+  return (
+    <div style={{
+      position: "fixed", bottom: "24px", left: "50%", transform: "translateX(-50%)",
+      background: isError ? theme.danger : theme.text, color: isError ? "#fff" : theme.card,
+      padding: "10px 18px", borderRadius: "50px", fontSize: "13px", fontWeight: 500,
+      boxShadow: theme.shadowLg, zIndex: 10001, display: "flex", alignItems: "center", gap: "8px",
+      animation: "fadeInUp 0.2s ease-out",
+    }}>
+      {isError ? <X size={14} /> : <Check size={14} />}
+      {toast.message}
+    </div>
+  );
+};
+
+// ─── CONFIRM DIALOG ────────────────────────────────────────────────────────
+const ConfirmDialog = ({ dialog, onCancel, theme }) => {
+  if (!dialog) return null;
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10000, padding: "20px" }}
+      onClick={onCancel}
+    >
+      <div
+        style={{ background: theme.card, borderRadius: theme.radius, padding: "24px", maxWidth: "360px", width: "100%", border: `1px solid ${theme.border}`, boxShadow: theme.shadowLg }}
+        onClick={e => e.stopPropagation()}
+      >
+        <p style={{ margin: "0 0 20px", fontSize: "14px", color: theme.text, lineHeight: 1.5 }}>{dialog.message}</p>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+          <button
+            onClick={onCancel}
+            style={{ padding: "8px 16px", borderRadius: theme.radiusSm, border: `1px solid ${theme.border}`, background: "transparent", color: theme.textSec, cursor: "pointer", fontSize: "13px", fontWeight: 500 }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={dialog.onConfirm}
+            style={{ padding: "8px 16px", borderRadius: theme.radiusSm, border: "none", background: theme.danger, color: "#fff", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -452,7 +510,7 @@ const CreatePost = ({ user, onCreate, posting, theme }) => {
 };
 
 // ─── POST CARD ───────────────────────────────────────────────────────────
-const PostCard = ({ post, currentUser, onAddComment, onToggleLike, onToggleSave, onDeletePost, theme }) => {
+const PostCard = ({ post, currentUser, onAddComment, onToggleLike, onToggleSave, onDeletePost, onDeleteComment, theme }) => {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [liked, setLiked] = useState(post.likedByMe || false);
@@ -489,7 +547,7 @@ const PostCard = ({ post, currentUser, onAddComment, onToggleLike, onToggleSave,
             {post.category && <Badge label={getCategoryLabel(post.category)} type="neutral" theme={theme} />}
           </div>
         </div>
-        {currentUser?.id === post.authorId && onDeletePost && (
+        {sameId(currentUser?.id, post.authorId) && onDeletePost && (
           <button onClick={() => onDeletePost(post.id)} style={{ border: "none", background: "transparent", color: theme.textMut, cursor: "pointer", padding: "4px" }}>
             <Trash2 size={15} />
           </button>
@@ -512,15 +570,24 @@ const PostCard = ({ post, currentUser, onAddComment, onToggleLike, onToggleSave,
 
       {showComments && (
         <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: `1px solid ${theme.border}`, display: "flex", flexDirection: "column", gap: "8px" }}>
-          {(post.comments || []).map((c) => (
-            <div key={c.id || c._id} style={{ display: "flex", gap: "8px" }}>
-              <Avatar name={c.authorName} size={26} theme={theme} />
-              <div style={{ flex: 1, background: theme.bg, borderRadius: theme.radiusSm, padding: "6px 12px" }}>
-                <div style={{ fontSize: "11px", fontWeight: 600, color: theme.text }}>{c.authorName}</div>
-                <p style={{ fontSize: "12.5px", color: theme.textSec, margin: "2px 0 0" }}>{c.content}</p>
-              </div>
-            </div>
-          ))}
+         {(post.comments || []).map((c) => (
+        <div key={c.id || c._id} style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+          <Avatar name={c.authorName} size={26} theme={theme} />
+          <div style={{ flex: 1, background: theme.bg, borderRadius: theme.radiusSm, padding: "6px 12px" }}>
+            <div style={{ fontSize: "11px", fontWeight: 600, color: theme.text }}>{c.authorName}</div>
+            <p style={{ fontSize: "12.5px", color: theme.textSec, margin: "2px 0 0" }}>{c.content}</p>
+          </div>
+          {isCommentOwner(currentUser, post, c) && onDeleteComment && (
+            <button
+              onClick={() => onDeleteComment(post.id, c.id || c._id)}
+              style={{ border: "none", background: "transparent", color: theme.textMut, cursor: "pointer", padding: "4px", flexShrink: 0 }}
+              title="Delete comment"
+            >
+              <Trash2 size={13} />
+            </button>
+          )}
+        </div>
+      ))}
 
           <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
             <input
@@ -809,7 +876,14 @@ export default function DashboardPage({ onLogout, onHome }) {
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [offline, setOffline] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState(null);
+  const [toast, setToast] = useState(null);
   const token = getStoredToken();
+
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   // ─── LOAD USER ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -895,18 +969,28 @@ export default function DashboardPage({ onLogout, onHome }) {
   };
 
   // ─── DELETE POST ──────────────────────────────────────────────────────
-  const handleDeletePost = async (postId) => {
-    if (!token || !window.confirm("Delete this post?")) return;
-    try {
-      await fetch(`${API_BASE}/posts/${postId}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
-      setAllPosts(prev => prev.filter(p => p.id !== postId));
-    } catch { console.error("Delete failed"); }
+  const handleDeletePost = (postId) => {
+    if (!token) return;
+    setConfirmDialog({
+      message: "Delete this post? This can't be undone.",
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        try {
+          const res = await fetch(`${API_BASE}/posts/${postId}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+          if (!res.ok) throw new Error("Failed");
+          setAllPosts(prev => prev.filter(p => p.id !== postId));
+          showToast("Post deleted");
+        } catch {
+          showToast("Failed to delete post", "error");
+        }
+      },
+    });
   };
 
   // ─── ADD COMMENT ──────────────────────────────────────────────────────
   const handleAddComment = async (postId, content) => {
     if (!token) return;
-    const optimisticComment = { id: `local-${Date.now()}`, authorName: user?.name || "Student", content, createdAt: new Date().toISOString() };
+    const optimisticComment = { id: `local-${Date.now()}`, authorId: user?.id, authorName: user?.name || "Student", content, createdAt: new Date().toISOString() };
     setAllPosts(prev => prev.map(p => p.id === postId ? { ...p, comments: [...(p.comments || []), optimisticComment] } : p));
     try {
       const res = await fetch(`${API_BASE}/posts/${postId}/comments`, {
@@ -918,6 +1002,32 @@ export default function DashboardPage({ onLogout, onHome }) {
     } catch {
       loadPosts();
     }
+  };
+
+  // ─── DELETE COMMENT ──────────────────────────────────────────────────
+  const handleDeleteComment = (postId, commentId) => {
+    if (!token) return;
+    setConfirmDialog({
+      message: "Delete this comment?",
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        const prevPosts = allPosts;
+        setAllPosts(prev => prev.map(p =>
+          p.id === postId ? { ...p, comments: (p.comments || []).filter(c => (c.id || c._id) !== commentId) } : p
+        ));
+        try {
+          const res = await fetch(`${API_BASE}/posts/${postId}/comments/${commentId}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!res.ok) throw new Error("Failed");
+          showToast("Comment deleted");
+        } catch {
+          setAllPosts(prevPosts); // revert on failure
+          showToast("Failed to delete comment", "error");
+        }
+      },
+    });
   };
 
   // ─── TOGGLE LIKE ──────────────────────────────────────────────────────
@@ -983,6 +1093,7 @@ export default function DashboardPage({ onLogout, onHome }) {
                     onToggleLike={handleToggleLike}
                     onToggleSave={handleToggleSave}
                     onDeletePost={handleDeletePost}
+                    onDeleteComment={handleDeleteComment}
                     theme={theme}
                   />
                 ))
@@ -1044,6 +1155,9 @@ export default function DashboardPage({ onLogout, onHome }) {
           )}
         </aside>
       </div>
+
+      <ConfirmDialog dialog={confirmDialog} onCancel={() => setConfirmDialog(null)} theme={theme} />
+      <Toast toast={toast} theme={theme} />
     </div>
   );
 }
