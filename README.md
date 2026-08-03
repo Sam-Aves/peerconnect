@@ -112,6 +112,6 @@ npm run dev
 
 - Asliraf Samaylan (C233446)
 - Nusrat Jahan (C233464)
-- Tahasina Tasnim Afra (C233456) / Samiha Akter (C233467)
+- Samiha Akter (C233467)
 
 Supervised by Md Sadman Hafiz, Lecturer, Dept. of CSE, IIUC.
