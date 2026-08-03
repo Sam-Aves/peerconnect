@@ -10,7 +10,7 @@ import SettingsPage from "./SettingsPage";
 import { useTheme } from "../context/ThemeContext";
 import logo from "../assets/logo1.png";
 
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://peerconnect-api.onrender.com/api";
 
 // ─── THEME (dynamic) ──────────────────────────────────────────────────
 const getTheme = (isDark) => ({

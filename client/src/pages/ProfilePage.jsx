@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://peerconnect-api.onrender.com/api";
 
 const getTheme = (isDark) => ({
   bg: isDark ? "#12121a" : "#f8faf9",

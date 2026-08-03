@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-const API_BASE = "http://localhost:5000/api";
+const API_BASE = "https://peerconnect-api.onrender.com/api";
 const SERVER_ORIGIN = API_BASE.replace(/\/api\/?$/, ""); // e.g. http://localhost:5000 — used to resolve uploaded file paths
 
 // ─── COLOUR & DESIGN TOKENS ───────────────────────────────────────────────────
