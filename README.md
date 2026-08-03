@@ -77,6 +77,20 @@ The project was planned and built across 7 sprints:
 - Real-time notifications currently use polling, not WebSockets
 - Some legacy/experimental files remain in the repo from features that were prototyped but not completed due to time constraints
 
+## Deployment
+
+PeerConnect uses a split deployment architecture — the backend and frontend are deployed as two independent services that communicate over HTTPS, each auto-deploying from the `dev-final` branch on push.
+
+| Layer | Platform | Notes |
+|-------|----------|-------|
+| Database | MongoDB Atlas | Cloud-hosted MongoDB cluster |
+| Backend (Express API) | Render | Free-tier web service, root dir `server/` |
+| Frontend (React) | Vercel | Free-tier static hosting, root dir `client/` |
+
+**Live URLs:**
+- Frontend: _TBD_
+- Backend API: _TBD_
+
 ## Getting Started (Local Development)
 
 **Backend:**
