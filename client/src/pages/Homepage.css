@@ -1506,16 +1506,22 @@ html {
 }
 
 .faq-icon {
-  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-dark);
+  flex-shrink: 0;
 }
 .faq-arrow {
+  display: flex;
+  align-items: center;
   transition: transform 0.3s ease;
+  flex-shrink: 0;
 }
-
+ 
 .faq-arrow.open {
   transform: rotate(180deg);
 }
-
 /* ANSWER ANIMATION */
 .faq-answer {
   max-height: 0;
@@ -1616,8 +1622,9 @@ html {
 }
 
 .contact-emoji {
-  font-size: 2.5rem;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 16px;
 }
 
@@ -1727,7 +1734,9 @@ html {
 }
 
 .contact-icon {
-  font-size: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 20px;
 }
 
@@ -1925,9 +1934,6 @@ html {
 
   background: #35c7a2;
   color: white;
-
-  font-size: 26px;
-  font-weight: bold;
 
   cursor: pointer;
 

@@ -1,3 +1,5 @@
+import { Mail } from "lucide-react";
+
 export default function ContactSection() {
   return (
     <section id="contact-section" className="contact-section">
@@ -12,7 +14,10 @@ export default function ContactSection() {
         </p>
 
         <div className="contact-card-main">
-          <div className="contact-icon">📩</div>
+          {/* ✅ Mail icon replaces 📩 emoji */}
+          <div className="contact-icon">
+            <Mail size={42} strokeWidth={1.5} color="#35c7a2" />
+          </div>
 
           <h3>Email us</h3>
 

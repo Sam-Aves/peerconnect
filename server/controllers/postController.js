@@ -5,18 +5,18 @@ const User = require("../models/User");
 const getPosts = async (req, res) => {
   try {
     const { category, type, status, search, limit = 20, page = 1 } = req.query;
-    
+
     // Build filter
     const filter = { status: "active" };
     if (category && category !== "all") filter.category = category;
     if (type && type !== "all") filter.type = type;
     if (status && status !== "all") filter.status = status;
-    
+
     // Search in title and description
     if (search) {
       filter.$or = [
         { title: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } }
+        { description: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -34,15 +34,17 @@ const getPosts = async (req, res) => {
     const total = await Post.countDocuments(filter);
 
     // Format posts for frontend
-    const formattedPosts = posts.map(post => {
+    const formattedPosts = posts.map((post) => {
       const isLiked = post.likes && post.likes.includes(req.user.id);
       const isSaved = post.savedBy && post.savedBy.includes(req.user.id);
-      
+
       return {
         id: post._id,
         title: post.title,
         content: post.description,
-        authorName: post.is_anonymous ? "Anonymous" : (post.authorName || post.author?.name || "Unknown"),
+        authorName: post.is_anonymous
+          ? "Anonymous"
+          : post.authorName || post.author?.name || "Unknown",
         authorId: post.author?._id || post.author,
         type: post.type,
         category: post.category,
@@ -51,16 +53,18 @@ const getPosts = async (req, res) => {
         likedByMe: isLiked,
         savedByMe: isSaved,
         commentCount: post.comments ? post.comments.length : 0,
-        comments: post.comments ? post.comments.map(c => ({
-          id: c._id,
-          authorName: c.authorName || "Unknown",
-          content: c.content,
-          createdAt: c.createdAt
-        })) : [],
+        comments: post.comments
+          ? post.comments.map((c) => ({
+              id: c._id,
+              authorName: c.authorName || "Unknown",
+              content: c.content,
+              createdAt: c.createdAt,
+            }))
+          : [],
         isAnonymous: post.is_anonymous,
         status: post.status,
         matchedHelper: post.matched_helper_id?.name || null,
-        helpCount: post.helpCount || 0
+        helpCount: post.helpCount || 0,
       };
     });
 
@@ -70,8 +74,8 @@ const getPosts = async (req, res) => {
         total,
         page: parseInt(page),
         limit: parseInt(limit),
-        pages: Math.ceil(total / parseInt(limit))
-      }
+        pages: Math.ceil(total / parseInt(limit)),
+      },
     });
   } catch (error) {
     console.error("Error fetching posts:", error);
@@ -83,7 +87,7 @@ const getPosts = async (req, res) => {
 const getPostById = async (req, res) => {
   try {
     const { postId } = req.params;
-    
+
     const post = await Post.findById(postId)
       .populate("author", "name university district profile_photo")
       .populate("comments.author", "name")
@@ -100,7 +104,10 @@ const getPostById = async (req, res) => {
       id: post._id,
       title: post.title,
       content: post.description,
-      authorName: post.is_anonymous ? "Anonymous" : post.authorName,
+      // FIX: added fallback chain so older posts without stored authorName still resolve
+      authorName: post.is_anonymous
+        ? "Anonymous"
+        : post.authorName || post.author?.name || "Unknown",
       author: post.author,
       type: post.type,
       category: post.category,
@@ -112,7 +119,7 @@ const getPostById = async (req, res) => {
       isAnonymous: post.is_anonymous,
       status: post.status,
       matchedHelper: post.matched_helper_id,
-      helpCount: post.helpCount || 0
+      helpCount: post.helpCount || 0,
     });
   } catch (error) {
     console.error("Error fetching post:", error);
@@ -125,27 +132,24 @@ const createPost = async (req, res) => {
   try {
     const { title, description, type, category, is_anonymous } = req.body;
 
-    // Validate required fields
     if (!title || !description || !type || !category) {
-      return res.status(400).json({ 
-        message: "Title, description, type, and category are required" 
+      return res.status(400).json({
+        message: "Title, description, type, and category are required",
       });
     }
 
-    // Get user
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if user is verified
     if (!user.verified) {
-      return res.status(403).json({ 
-        message: "Your account is not verified yet. Please wait for admin verification." 
+      return res.status(403).json({
+        message:
+          "Your account is not verified yet. Please wait for admin verification.",
       });
     }
 
-    // Create post
     const post = await Post.create({
       title: title.trim(),
       description: description.trim(),
@@ -158,10 +162,9 @@ const createPost = async (req, res) => {
       comments: [],
       savedBy: [],
       status: "active",
-      helpCount: 0
+      helpCount: 0,
     });
 
-    // If user is helping, increase contribution
     if (type === "helping" || type === "both") {
       user.contribution = (user.contribution || 0) + 1;
       await user.save();
@@ -182,8 +185,8 @@ const createPost = async (req, res) => {
         savedByMe: false,
         comments: [],
         isAnonymous: post.is_anonymous,
-        status: post.status
-      }
+        status: post.status,
+      },
     });
   } catch (error) {
     console.error("Error creating post:", error);
@@ -202,12 +205,12 @@ const updatePost = async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    // Check if user is the author
     if (post.author.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized to update this post" });
+      return res
+        .status(403)
+        .json({ message: "Not authorized to update this post" });
     }
 
-    // Update fields
     if (title) post.title = title.trim();
     if (description) post.description = description.trim();
     if (category) post.category = category;
@@ -224,8 +227,8 @@ const updatePost = async (req, res) => {
         content: post.description,
         type: post.type,
         category: post.category,
-        isAnonymous: post.is_anonymous
-      }
+        isAnonymous: post.is_anonymous,
+      },
     });
   } catch (error) {
     console.error("Error updating post:", error);
@@ -243,9 +246,10 @@ const deletePost = async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    // Check if user is the author or admin
     if (post.author.toString() !== req.user.id && !req.user.isAdmin) {
-      return res.status(403).json({ message: "Not authorized to delete this post" });
+      return res
+        .status(403)
+        .json({ message: "Not authorized to delete this post" });
     }
 
     await post.deleteOne();
@@ -258,14 +262,15 @@ const deletePost = async (req, res) => {
 };
 
 // ─── ADD COMMENT ───
-
 const addComment = async (req, res) => {
   try {
     const { postId } = req.params;
     const { content } = req.body;
 
     if (!content || !content.trim()) {
-      return res.status(400).json({ message: "Comment content is required" });
+      return res
+        .status(400)
+        .json({ message: "Comment content is required" });
     }
 
     const post = await Post.findById(postId);
@@ -302,7 +307,9 @@ const addComment = async (req, res) => {
     });
   } catch (error) {
     console.error("Error adding comment:", error);
-    res.status(500).json({ message: error.message || "Failed to add comment" });
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to add comment" });
   }
 };
 
@@ -321,11 +328,14 @@ const deleteComment = async (req, res) => {
       return res.status(404).json({ message: "Comment not found" });
     }
 
-    // Check if user is the comment author, post author, or admin
-    if (comment.author.toString() !== req.user.id && 
-        post.author.toString() !== req.user.id && 
-        !req.user.isAdmin) {
-      return res.status(403).json({ message: "Not authorized to delete this comment" });
+    if (
+      comment.author.toString() !== req.user.id &&
+      post.author.toString() !== req.user.id &&
+      !req.user.isAdmin
+    ) {
+      return res
+        .status(403)
+        .json({ message: "Not authorized to delete this comment" });
     }
 
     comment.deleteOne();
@@ -334,7 +344,9 @@ const deleteComment = async (req, res) => {
     res.json({ message: "Comment deleted successfully" });
   } catch (error) {
     console.error("Error deleting comment:", error);
-    res.status(500).json({ message: error.message || "Failed to delete comment" });
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to delete comment" });
   }
 };
 
@@ -352,17 +364,27 @@ const toggleLike = async (req, res) => {
     const liked = post.toggleLike(userId);
     await post.save();
 
-        // ─── NOTIFICATION ───
+    // ─── NOTIFICATION ───
     if (liked) {
-      const { createNotification } = require("./notificationController");
-      const user = await User.findById(userId);
-      await createNotification(
-        post.author,
-        userId,
-        "like",
-        postId,
-        `${user.name} liked your post: "${post.content.substring(0, 30)}..."`
-      );
+      try {
+        const { createNotification } = require("./notificationController");
+        const user = await User.findById(userId).select("name");
+        if (user && post.author) {
+          const contentPreview = (post.description || "a post").substring(0, 30);
+          await createNotification(
+            post.author,
+            userId,
+            "like",
+            postId,
+            `${user.name} liked your post: "${contentPreview}${
+              post.description?.length > 30 ? "..." : ""
+            }"`
+          );
+        }
+      } catch (notifError) {
+        console.error("Failed to create notification for like:", notifError);
+        // Do not fail the request; just log the error
+      }
     }
 
     res.json({
@@ -372,9 +394,12 @@ const toggleLike = async (req, res) => {
     });
   } catch (error) {
     console.error("Error toggling like:", error);
-    res.status(500).json({ message: error.message || "Failed to toggle like" });
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to toggle like" });
   }
 };
+
 // ─── TOGGLE SAVE ───
 const toggleSave = async (req, res) => {
   try {
@@ -389,7 +414,6 @@ const toggleSave = async (req, res) => {
     const saved = post.toggleSave(userId);
     await post.save();
 
-    // Update user's saved posts
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -401,17 +425,21 @@ const toggleSave = async (req, res) => {
         user.savedPosts.push(postId);
       }
     } else {
-      user.savedPosts = user.savedPosts.filter(id => id.toString() !== postId);
+      user.savedPosts = user.savedPosts.filter(
+        (id) => id.toString() !== postId
+      );
     }
     await user.save();
 
     res.json({
       message: saved ? "Post saved" : "Post unsaved",
-      saved
+      saved,
     });
   } catch (error) {
     console.error("Error toggling save:", error);
-    res.status(500).json({ message: error.message || "Failed to toggle save" });
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to toggle save" });
   }
 };
 
@@ -426,9 +454,10 @@ const markResolved = async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    // Check if user is the author
     if (post.author.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Only the author can mark as resolved" });
+      return res
+        .status(403)
+        .json({ message: "Only the author can mark as resolved" });
     }
 
     const helper = await User.findById(helperId);
@@ -440,7 +469,6 @@ const markResolved = async (req, res) => {
     post.helpCount = (post.helpCount || 0) + 1;
     await post.save();
 
-    // Increase helper's contribution
     helper.contribution = (helper.contribution || 0) + 1;
     await helper.save();
 
@@ -450,12 +478,14 @@ const markResolved = async (req, res) => {
         id: post._id,
         status: post.status,
         matchedHelper: helper.name,
-        helpCount: post.helpCount
-      }
+        helpCount: post.helpCount,
+      },
     });
   } catch (error) {
     console.error("Error marking resolved:", error);
-    res.status(500).json({ message: error.message || "Failed to mark as resolved" });
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to mark as resolved" });
   }
 };
 
@@ -472,7 +502,7 @@ const getUserPosts = async (req, res) => {
       .populate("matched_helper_id", "name")
       .sort({ createdAt: -1 });
 
-    const formattedPosts = posts.map(post => ({
+    const formattedPosts = posts.map((post) => ({
       id: post._id,
       title: post.title,
       content: post.description,
@@ -483,13 +513,15 @@ const getUserPosts = async (req, res) => {
       likes: post.likes ? post.likes.length : 0,
       comments: post.comments ? post.comments.length : 0,
       matchedHelper: post.matched_helper_id?.name || null,
-      helpCount: post.helpCount || 0
+      helpCount: post.helpCount || 0,
     }));
 
     res.json({ posts: formattedPosts });
   } catch (error) {
     console.error("Error fetching user posts:", error);
-    res.status(500).json({ message: error.message || "Failed to fetch user posts" });
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to fetch user posts" });
   }
 };
 
@@ -498,14 +530,14 @@ const getSavedPosts = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate({
       path: "savedPosts",
-      populate: { path: "author", select: "name" }
+      populate: { path: "author", select: "name" },
     });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const formattedPosts = (user.savedPosts || []).map(post => ({
+    const formattedPosts = (user.savedPosts || []).map((post) => ({
       id: post._id,
       title: post.title,
       content: post.description,
@@ -516,34 +548,39 @@ const getSavedPosts = async (req, res) => {
       likes: post.likes ? post.likes.length : 0,
       likedByMe: post.likes && post.likes.includes(req.user.id),
       savedByMe: true,
-      comments: post.comments ? post.comments.map(c => ({
-        id: c._id,
-        authorName: c.authorName || "Unknown",
-        content: c.content,
-        createdAt: c.createdAt
-      })) : [],
+      comments: post.comments
+        ? post.comments.map((c) => ({
+            id: c._id,
+            authorName: c.authorName || "Unknown",
+            content: c.content,
+            createdAt: c.createdAt,
+          }))
+        : [],
       status: post.status,
-      helpCount: post.helpCount || 0
+      helpCount: post.helpCount || 0,
     }));
 
     res.json({ posts: formattedPosts });
   } catch (error) {
     console.error("Error fetching saved posts:", error);
-    res.status(500).json({ message: error.message || "Failed to fetch saved posts" });
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to fetch saved posts" });
   }
 };
+
 // ─── GET USER PROFILE ───
 const getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id)
       .select("-password")
       .populate("savedPosts", "content type category createdAt");
-    
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    
-    res.json({ 
+
+    res.json({
       user: {
         id: user._id,
         name: user.name,
@@ -555,12 +592,14 @@ const getUserProfile = async (req, res) => {
         verified: user.verified,
         isAdmin: user.isAdmin,
         contribution: user.contribution || 0,
-        savedPosts: user.savedPosts || []
-      }
+        savedPosts: user.savedPosts || [],
+      },
     });
   } catch (error) {
     console.error("Error fetching user profile:", error);
-    res.status(500).json({ message: error.message || "Failed to fetch profile" });
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to fetch profile" });
   }
 };
 
@@ -592,12 +631,14 @@ const updateUserProfile = async (req, res) => {
         bio: user.bio,
         verified: user.verified,
         isAdmin: user.isAdmin,
-        contribution: user.contribution
-      }
+        contribution: user.contribution,
+      },
     });
   } catch (error) {
     console.error("Error updating profile:", error);
-    res.status(500).json({ message: error.message || "Failed to update profile" });
+    res
+      .status(500)
+      .json({ message: error.message || "Failed to update profile" });
   }
 };
 
@@ -614,6 +655,6 @@ module.exports = {
   markResolved,
   getUserPosts,
   getSavedPosts,
-  getUserProfile,    
-  updateUserProfile 
+  getUserProfile,
+  updateUserProfile,
 };

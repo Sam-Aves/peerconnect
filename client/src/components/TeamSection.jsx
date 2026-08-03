@@ -1,3 +1,5 @@
+import { Sparkles, Zap, Palette, Rocket, ArrowRight } from "lucide-react";
+
 export default function TeamSection({ onJoin }) {
   return (
     <section className="team-section">
@@ -29,7 +31,11 @@ export default function TeamSection({ onJoin }) {
               mentorship.
             </p>
 
-            <div className="team-tagline">✨ Visionary & Community-first</div>
+            {/* ✅ Sparkles icon replaces ✨ emoji */}
+            <div className="team-tagline">
+              <Sparkles size={14} strokeWidth={1.8} style={{ marginRight: 6, verticalAlign: "middle" }} />
+              Visionary &amp; Community-first
+            </div>
           </div>
 
           <div className="team-card">
@@ -47,7 +53,11 @@ export default function TeamSection({ onJoin }) {
               secure for every student.
             </p>
 
-            <div className="team-tagline">⚡ Code & Infrastructure</div>
+            {/* ✅ Zap icon replaces ⚡ emoji */}
+            <div className="team-tagline">
+              <Zap size={14} strokeWidth={1.8} style={{ marginRight: 6, verticalAlign: "middle" }} />
+              Code &amp; Infrastructure
+            </div>
           </div>
 
           <div className="team-card">
@@ -65,13 +75,21 @@ export default function TeamSection({ onJoin }) {
               to use.
             </p>
 
-            <div className="team-tagline">🎨 Design & User Experience</div>
+            {/* ✅ Palette icon replaces 🎨 emoji */}
+            <div className="team-tagline">
+              <Palette size={14} strokeWidth={1.8} style={{ marginRight: 6, verticalAlign: "middle" }} />
+              Design &amp; User Experience
+            </div>
           </div>
         </div>
 
         <div className="team-hiring">
           <div className="hiring-content">
-            <span className="hiring-badge">🚀 We're growing</span>
+            {/* ✅ Rocket icon replaces 🚀 emoji */}
+            <span className="hiring-badge">
+              <Rocket size={13} strokeWidth={1.8} style={{ marginRight: 5, verticalAlign: "middle" }} />
+              We're growing
+            </span>
 
             <h3 className="hiring-title">Help us build PeerConnect</h3>
 
@@ -81,7 +99,8 @@ export default function TeamSection({ onJoin }) {
 
             <button className="hiring-btn" onClick={onJoin}>
               Join us
-              <span className="btn-arrow">→</span>
+              {/* ✅ ArrowRight icon replaces → text */}
+              <ArrowRight size={16} strokeWidth={2} className="btn-arrow" />
             </button>
           </div>
         </div>

@@ -2,62 +2,81 @@ const Notification = require("../models/Notification");
 
 const createNotification = async (recipientId, senderId, type, postId, message) => {
   try {
+    if (!recipientId || !senderId) return;
     if (recipientId.toString() === senderId.toString()) return;
+
     await Notification.create({
       recipient: recipientId,
       sender: senderId,
       type,
-      post: postId,
+      post: postId || null,
       message,
     });
-  } catch (error) {
-    console.error("Error creating notification:", error);
+  } catch (err) {
+    console.error("createNotification error:", err.message);
   }
 };
 
 const getNotifications = async (req, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ notifications: [] });
+    }
+
     const notifications = await Notification.find({ recipient: req.user.id })
       .populate("sender", "name profile_photo")
-      .populate("post", "content")
       .sort({ createdAt: -1 })
       .limit(50);
-    res.json({ notifications });
+
+    res.json({ notifications: notifications || [] });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("getNotifications error:", error);
+    res.status(500).json({ notifications: [], message: error.message || "Failed to fetch notifications" });
   }
 };
 
-const markAsRead = async (req, res) => {
+const markRead = async (req, res) => {
   try {
-    const notification = await Notification.findById(req.params.id);
-    if (!notification) return res.status(404).json({ message: "Not found" });
-    if (notification.recipient.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized" });
-    }
-    notification.read = true;
-    await notification.save();
+    const { id } = req.params;
+    const notif = await Notification.findOne({ _id: id, recipient: req.user.id });
+    if (!notif) return res.status(404).json({ message: "Notification not found" });
+    notif.read = true;
+    await notif.save();
     res.json({ message: "Marked as read" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("markRead error:", error);
+    res.status(500).json({ message: error.message || "Failed to mark as read" });
   }
 };
 
-const markAllAsRead = async (req, res) => {
+const markAllRead = async (req, res) => {
   try {
     await Notification.updateMany(
       { recipient: req.user.id, read: false },
       { $set: { read: true } }
     );
-    res.json({ message: "All marked as read" });
+    res.json({ message: "All notifications marked as read" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("markAllRead error:", error);
+    res.status(500).json({ message: error.message || "Failed to mark all as read" });
+  }
+};
+
+const deleteNotification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Notification.findOneAndDelete({ _id: id, recipient: req.user.id });
+    res.json({ message: "Notification deleted" });
+  } catch (error) {
+    console.error("deleteNotification error:", error);
+    res.status(500).json({ message: error.message || "Failed to delete notification" });
   }
 };
 
 module.exports = {
   createNotification,
   getNotifications,
-  markAsRead,
-  markAllAsRead,
+  markRead,
+  markAllRead,
+  deleteNotification,
 };

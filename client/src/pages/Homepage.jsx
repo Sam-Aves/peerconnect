@@ -21,6 +21,16 @@ import ContactSection from "../components/ContactSection";
 import Footer from "../components/Footer";
 import BackToTopButton from "../components/BackToTopButton";
 
+// ✅ lucide icons replacing all emojis from faqData
+import {
+  ShieldCheck,
+  Siren,
+  MessageCircle,
+  Star,
+  Home,
+  Globe,
+} from "lucide-react";
+
 export default function Homepage({ onLogout, onJoin, onBack, isGuest }) {
   const [isHero, setIsHero] = useState(true);
   const didScrollRef = useRef(false);
@@ -28,16 +38,6 @@ export default function Homepage({ onLogout, onJoin, onBack, isGuest }) {
   useEffect(() => {
     window.history.scrollRestoration = "manual";
     window.scrollTo({ top: 0, behavior: "instant" });
-
-    // If arriving as guest (from "About Us"), scroll to #features after mount
-   /* if (isGuest && !didScrollRef.current) {
-      didScrollRef.current = true;
-      setTimeout(() => {
-        document
-          .getElementById("features")
-          ?.scrollIntoView({ behavior: "smooth" });
-      }, 120);
-    }*/
 
     const handleScroll = () => {
       setIsHero(window.scrollY < window.innerHeight - 100);
@@ -49,39 +49,40 @@ export default function Homepage({ onLogout, onJoin, onBack, isGuest }) {
   const [openFaq, setOpenFaq] = useState(null);
   const [currentFeature, setCurrentFeature] = useState(0);
 
+  // ✅ icon field is now a lucide component, not an emoji string
   const faqData = [
     {
-      icon: "🔒",
+      icon: ShieldCheck,
       question: "Is my information safe and verified?",
       answer:
         "Absolutely. Every user must verify through university email and ID card. We also monitor suspicious activity to ensure safety.",
     },
     {
-      icon: "🚨",
+      icon: Siren,
       question: "What happens in an emergency situation?",
       answer:
         "One tap on the emergency button alerts nearby friends and shares your live location instantly.",
     },
     {
-      icon: "💬",
+      icon: MessageCircle,
       question: "Can I message my buddy anytime?",
       answer:
         "Yes! You can chat anytime in Bengali or English and get help about housing, transport, and campus life.",
     },
     {
-      icon: "⭐",
+      icon: Star,
       question: "How do I become a buddy/mentor?",
       answer:
         "If you're a second-year student or higher, you can join as a mentor, earn badges, and help newcomers.",
     },
     {
-      icon: "🏠",
+      icon: Home,
       question: "What kind of housing help can I get?",
       answer:
         "You can find safe housing, mess info, rental guidance, and area suggestions from experienced seniors.",
     },
     {
-      icon: "🌐",
+      icon: Globe,
       question: "Is PeerConnect only for Chittagong?",
       answer:
         "Currently yes, but we plan to expand to other major university cities in Bangladesh.",
@@ -117,56 +118,46 @@ export default function Homepage({ onLogout, onJoin, onBack, isGuest }) {
 
   return (
     <div className="homepage">
-      {/* NAVBAR */}
       <HomeNavbar
-  logo={logo}
-  isHero={isHero}
-  isGuest={isGuest}
-  onBack={onBack}
-  onJoin={onJoin}
-  onLogout={onLogout}
-/>
+        logo={logo}
+        isHero={isHero}
+        isGuest={isGuest}
+        onBack={onBack}
+        onJoin={onJoin}
+        onLogout={onLogout}
+      />
 
-      {/* HERO */}
       <HeroSection chittagongCityImg={chittagongCityImg} onJoin={onJoin} />
 
-      {/* FEATURES */}
       <FeaturesSection
-  features={features}
-  currentFeature={currentFeature}
-  setCurrentFeature={setCurrentFeature}
-/>
+        features={features}
+        currentFeature={currentFeature}
+        setCurrentFeature={setCurrentFeature}
+      />
 
-      {/* WHO WE SERVE */}
       <WhoSection
-  newcomerImg={newcomerImg}
-  seniorImg={seniorImg}
-  authorityImg={authorityImg}
-/>
+        newcomerImg={newcomerImg}
+        seniorImg={seniorImg}
+        authorityImg={authorityImg}
+      />
 
-      {/* REVIEWS */}
-     <ReviewsSection />
+      <ReviewsSection />
 
-      {/* IMPACT */}
       <ImpactSection onJoin={onJoin} />
 
-      {/* TEAM */}
       <TeamSection onJoin={onJoin} />
 
-      {/* FAQ */}
       <FAQSection
-  faqData={faqData}
-  openFaq={openFaq}
-  setOpenFaq={setOpenFaq}
-/>
+        faqData={faqData}
+        openFaq={openFaq}
+        setOpenFaq={setOpenFaq}
+      />
 
-      {/* CONTACT */}
       <ContactSection />
 
-      {/* FOOTER */}
       <Footer logo={logo} />
 
-     <BackToTopButton />
+      <BackToTopButton />
     </div>
   );
 }

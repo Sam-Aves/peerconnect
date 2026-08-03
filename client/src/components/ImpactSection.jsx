@@ -1,3 +1,5 @@
+import { ArrowRight } from "lucide-react";
+
 export default function ImpactSection({ onJoin }) {
   return (
     <section className="impact-section">
@@ -19,9 +21,7 @@ export default function ImpactSection({ onJoin }) {
         <div className="impact-stats-grid">
           <div className="stat-card">
             <div className="stat-number">64</div>
-
             <div className="stat-label">Districts connected</div>
-
             <div className="stat-description">
               Students from every corner of Bangladesh finding their way
             </div>
@@ -31,9 +31,7 @@ export default function ImpactSection({ onJoin }) {
             <div className="stat-number">
               800<span className="stat-plus">+</span>
             </div>
-
             <div className="stat-label">Active senior buddies</div>
-
             <div className="stat-description">
               Experienced guides sharing knowledge and building trust
             </div>
@@ -43,9 +41,7 @@ export default function ImpactSection({ onJoin }) {
             <div className="stat-number">
               2,400<span className="stat-plus">+</span>
             </div>
-
             <div className="stat-label">Students helped</div>
-
             <div className="stat-description">Growing stronger every day</div>
           </div>
 
@@ -53,9 +49,7 @@ export default function ImpactSection({ onJoin }) {
             <div className="stat-number">
               45<span className="stat-plus">+</span>
             </div>
-
             <div className="stat-label">Community events held</div>
-
             <div className="stat-description">
               Connections made beyond screens and into real life
             </div>
@@ -65,7 +59,8 @@ export default function ImpactSection({ onJoin }) {
         <div className="impact-footer">
           <button className="impact-join-btn" onClick={onJoin}>
             Join the movement
-            <span className="btn-arrow">→</span>
+            {/* ✅ ArrowRight icon replaces → text */}
+            <ArrowRight size={18} strokeWidth={2} className="btn-arrow" />
           </button>
         </div>
       </div>

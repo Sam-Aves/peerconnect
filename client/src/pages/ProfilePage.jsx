@@ -27,7 +27,7 @@ const getTheme = (isDark) => ({
 });
 
 const getStoredToken = () => localStorage.getItem("token") || null;
-const getStoredUser  = () => {
+const getStoredUser = () => {
   try { return JSON.parse(localStorage.getItem("user")) || null; } catch { return null; }
 };
 
@@ -146,10 +146,10 @@ const ProfileHeader = ({ user, isOwnProfile, onEdit, theme }) => (
 
       <div style={{ display: "flex", gap: "28px", marginTop: "16px", paddingTop: "16px", borderTop: `1px solid ${theme.border}` }}>
         {[
-          { label: "Posts",       value: user?.postsCount   ?? 0 },
-          { label: "Followers",   value: user?.followers    ?? 0 },
-          { label: "Following",   value: user?.following    ?? 0 },
-          { label: "Helps Given", value: user?.contribution ?? 0 },
+          { label: "Posts", value: user?.postsCount || 0 },
+          { label: "Followers", value: user?.followers || 0 },
+          { label: "Following", value: user?.following || 0 },
+          { label: "Helps Given", value: user?.contribution || 0 },
         ].map(stat => (
           <div key={stat.label}>
             <div style={{ fontSize: "20px", fontWeight: 700, color: theme.text }}>{stat.value}</div>
@@ -205,7 +205,7 @@ const InterestsCard = ({ interests, isOwnProfile, onEdit, theme }) => (
 
 // ─── PREFERENCES CARD ────────────────────────────────────────────────────
 const PreferencesCard = ({ user, isOwnProfile, onEdit, theme }) => {
-  const likes    = user?.likes    || [];
+  const likes = user?.likes || [];
   const dislikes = user?.dislikes || [];
   return (
     <div style={{ background: theme.card, borderRadius: theme.radius, border: `1px solid ${theme.border}`, padding: "20px", boxShadow: theme.shadow }}>
@@ -250,10 +250,10 @@ const PreferencesCard = ({ user, isOwnProfile, onEdit, theme }) => {
 // ─── ACHIEVEMENTS CARD ───────────────────────────────────────────────────
 const AchievementsCard = ({ user, theme }) => {
   const achievements = [];
-  if ((user?.postsCount   || 0) >= 1) achievements.push({ icon: "✍️", label: "First Post",      desc: "Shared your first post" });
-  if ((user?.contribution || 0) >= 5) achievements.push({ icon: "🤝", label: "Helping Hand",    desc: "Helped 5 students" });
-  if ((user?.followers    || 0) >= 10) achievements.push({ icon: "⭐", label: "Rising Star",    desc: "10 followers reached" });
-  if (user?.verified)                  achievements.push({ icon: "✅", label: "Verified Member", desc: "Identity verified" });
+  if ((user?.postsCount || 0) >= 1) achievements.push({ icon: "✍️", label: "First Post", desc: "Shared your first post" });
+  if ((user?.contribution || 0) >= 5) achievements.push({ icon: "🤝", label: "Helping Hand", desc: "Helped 5 students" });
+  if ((user?.followers || 0) >= 10) achievements.push({ icon: "⭐", label: "Rising Star", desc: "10 followers reached" });
+  if (user?.verified) achievements.push({ icon: "✅", label: "Verified Member", desc: "Identity verified" });
   if ((user?.interests?.length || 0) >= 3) achievements.push({ icon: "🎯", label: "Well-Rounded", desc: "Added 3+ interests" });
 
   return (
@@ -282,14 +282,14 @@ const AchievementsCard = ({ user, theme }) => {
 
 // ─── EDIT PROFILE MODAL ──────────────────────────────────────────────────
 const EditProfileModal = ({ user, onClose, onSave, theme }) => {
-  const [name,      setName]      = useState(user?.name      || "");
-  const [bio,       setBio]       = useState(user?.bio       || "");
-  const [district,  setDistrict]  = useState(user?.district  || "");
+  const [name, setName] = useState(user?.name || "");
+  const [bio, setBio] = useState(user?.bio || "");
+  const [district, setDistrict] = useState(user?.district || "");
   const [interests, setInterests] = useState(user?.interests || []);
-  const [likes,     setLikes]     = useState(user?.likes     || []);
-  const [dislikes,  setDislikes]  = useState(user?.dislikes  || []);
-  const [loading,   setLoading]   = useState(false);
-  const [error,     setError]     = useState("");
+  const [likes, setLikes] = useState(user?.likes || []);
+  const [dislikes, setDislikes] = useState(user?.dislikes || []);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSave = async () => {
     if (!name.trim()) { setError("Name is required."); return; }
@@ -297,22 +297,25 @@ const EditProfileModal = ({ user, onClose, onSave, theme }) => {
     setError("");
     try {
       const token = getStoredToken();
-      const payload = { name: name.trim(), bio: bio.trim(), district: district.trim(), interests, likes, dislikes };
-
+      const payload = {
+        name: name.trim(),
+        bio: bio.trim(),
+        district: district.trim(),
+        interests,
+        likes,
+        dislikes,
+      };
       const res = await fetch(`${API_BASE}/users/me`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
-
       if (!res.ok) {
         const errData = await res.json();
         throw new Error(errData.message || "Failed to save");
       }
-
       const data = await res.json();
-      // Use the server response directly — it now includes postsCount, followers, contribution etc.
-      const updated = data.user || { ...user, ...payload };
+      const updated = { ...(data.user || user), ...payload };
       localStorage.setItem("user", JSON.stringify(updated));
       onSave(updated);
       onClose();
@@ -346,41 +349,57 @@ const EditProfileModal = ({ user, onClose, onSave, theme }) => {
         <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
           <div>
             <label style={{ fontSize: "12px", fontWeight: 600, color: theme.textSec, display: "block", marginBottom: "6px" }}>Name *</label>
-            <input value={name} onChange={e => setName(e.target.value)}
+            <input
+              value={name} onChange={e => setName(e.target.value)}
               style={{ width: "100%", padding: "9px 13px", borderRadius: theme.radiusSm, border: `1px solid ${theme.border}`, fontSize: "14px", outline: "none", background: theme.bg, color: theme.text, boxSizing: "border-box" }}
             />
           </div>
 
           <div>
             <label style={{ fontSize: "12px", fontWeight: 600, color: theme.textSec, display: "block", marginBottom: "6px" }}>District</label>
-            <input value={district} onChange={e => setDistrict(e.target.value)}
+            <input
+              value={district} onChange={e => setDistrict(e.target.value)}
               style={{ width: "100%", padding: "9px 13px", borderRadius: theme.radiusSm, border: `1px solid ${theme.border}`, fontSize: "14px", outline: "none", background: theme.bg, color: theme.text, boxSizing: "border-box" }}
             />
           </div>
 
           <div>
             <label style={{ fontSize: "12px", fontWeight: 600, color: theme.textSec, display: "block", marginBottom: "6px" }}>Bio</label>
-            <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3}
+            <textarea
+              value={bio} onChange={e => setBio(e.target.value)} rows={3}
               placeholder="Tell other students about yourself..."
               style={{ width: "100%", padding: "9px 13px", borderRadius: theme.radiusSm, border: `1px solid ${theme.border}`, fontSize: "14px", outline: "none", resize: "vertical", background: theme.bg, color: theme.text, boxSizing: "border-box" }}
             />
           </div>
 
-          <TagInput label="Interests (press Enter or click Add)" items={interests} setItems={setInterests}
-            placeholder="e.g. Machine Learning, Football..." color={theme.primary} bg={theme.primaryLight} theme={theme} />
+          <TagInput
+            label="Interests (press Enter or click Add)"
+            items={interests} setItems={setInterests}
+            placeholder="e.g. Machine Learning, Football..."
+            color={theme.primary} bg={theme.primaryLight} theme={theme}
+          />
 
-          <TagInput label="Likes" items={likes} setItems={setLikes}
-            placeholder="e.g. Collaborative study, Coffee..." color={theme.success} bg={theme.successLight} theme={theme} />
+          <TagInput
+            label="Likes"
+            items={likes} setItems={setLikes}
+            placeholder="e.g. Collaborative study, Coffee..."
+            color={theme.success} bg={theme.successLight} theme={theme}
+          />
 
-          <TagInput label="Dislikes" items={dislikes} setItems={setDislikes}
-            placeholder="e.g. Last-minute changes..." color={theme.danger} bg={theme.dangerLight} theme={theme} />
+          <TagInput
+            label="Dislikes"
+            items={dislikes} setItems={setDislikes}
+            placeholder="e.g. Last-minute changes..."
+            color={theme.danger} bg={theme.dangerLight} theme={theme}
+          />
         </div>
 
         <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
           <button onClick={onClose} style={{ flex: 1, padding: "10px", borderRadius: theme.radiusSm, border: `1px solid ${theme.border}`, background: "transparent", cursor: "pointer", color: theme.textSec, fontSize: "14px" }}>
             Cancel
           </button>
-          <button onClick={handleSave} disabled={loading}
+          <button
+            onClick={handleSave} disabled={loading}
             style={{ flex: 2, padding: "10px", borderRadius: theme.radiusSm, border: "none", background: loading ? theme.textMut : theme.primary, color: "#fff", fontWeight: 600, cursor: loading ? "default" : "pointer", fontSize: "14px" }}
           >
             {loading ? "Saving..." : "Save Changes"}
@@ -395,40 +414,31 @@ const EditProfileModal = ({ user, onClose, onSave, theme }) => {
 export default function ProfilePage({ userId }) {
   const { isDark } = useTheme();
   const theme = getTheme(isDark);
-  const [user,          setUser]          = useState(null);
-  const [loading,       setLoading]       = useState(true);
-  const [isOwnProfile,  setIsOwnProfile]  = useState(false);
-  const [showEdit,      setShowEdit]      = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const token = getStoredToken();
 
   const fetchUser = useCallback(async () => {
     setLoading(true);
     try {
       const isMe = !userId || userId === "me";
-      const url  = isMe ? `${API_BASE}/users/me` : `${API_BASE}/users/${userId}`;
-
+      const url = isMe ? `${API_BASE}/users/me` : `${API_BASE}/users/${userId}`;
       const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error("Failed to fetch user");
-
-      const data     = await res.json();
-      // FIX: use the server response directly — do NOT merge stale localStorage
-      // values over it, because localStorage never had postsCount / followers etc.
+      if (!res.ok) throw new Error("Failed");
+      const data = await res.json();
       const userData = data.user || data;
-
-      setUser(userData);
-
       if (isMe) {
+        const stored = getStoredUser() || {};
+        const merged = { ...stored, ...userData };
+        setUser(merged);
         setIsOwnProfile(true);
-        // Keep localStorage in sync so other parts of the app have the latest name/bio
-        localStorage.setItem("user", JSON.stringify(userData));
       } else {
-        const stored = getStoredUser();
-        const myId   = stored?.id || stored?._id;
-        const theirId = userData.id || userData._id;
-        setIsOwnProfile(myId?.toString() === theirId?.toString());
+        setUser(userData);
+        setIsOwnProfile(getStoredUser()?.id === userData.id || getStoredUser()?._id === userData._id);
       }
     } catch {
-      // Fallback to localStorage only if the request itself fails (offline etc.)
       const stored = getStoredUser();
       if (stored) { setUser(stored); setIsOwnProfile(true); }
     } finally {
@@ -444,19 +454,15 @@ export default function ProfilePage({ userId }) {
   };
 
   if (loading) {
-    return (
-      <div style={{ padding: "48px", textAlign: "center", color: theme.textMut, background: theme.card, borderRadius: theme.radius, border: `1px solid ${theme.border}` }}>
-        Loading profile...
-      </div>
-    );
+    return <div style={{ padding: "48px", textAlign: "center", color: theme.textMut, background: theme.card, borderRadius: theme.radius, border: `1px solid ${theme.border}` }}>Loading profile...</div>;
   }
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "20px" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-        <ProfileHeader  user={user} isOwnProfile={isOwnProfile} onEdit={() => setShowEdit(true)} theme={theme} />
-        <BioCard        user={user} isOwnProfile={isOwnProfile} onEdit={() => setShowEdit(true)} theme={theme} />
-        <InterestsCard  interests={user?.interests} isOwnProfile={isOwnProfile} onEdit={() => setShowEdit(true)} theme={theme} />
+        <ProfileHeader user={user} isOwnProfile={isOwnProfile} onEdit={() => setShowEdit(true)} theme={theme} />
+        <BioCard user={user} isOwnProfile={isOwnProfile} onEdit={() => setShowEdit(true)} theme={theme} />
+        <InterestsCard interests={user?.interests} isOwnProfile={isOwnProfile} onEdit={() => setShowEdit(true)} theme={theme} />
         <PreferencesCard user={user} isOwnProfile={isOwnProfile} onEdit={() => setShowEdit(true)} theme={theme} />
         <AchievementsCard user={user} theme={theme} />
       </div>

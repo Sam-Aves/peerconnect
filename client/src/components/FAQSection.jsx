@@ -1,3 +1,5 @@
+import { ChevronDown, MessageSquare, ArrowRight } from "lucide-react";
+
 export default function FAQSection({ faqData, openFaq, setOpenFaq }) {
   return (
     <section className="faq-section">
@@ -14,41 +16,42 @@ export default function FAQSection({ faqData, openFaq, setOpenFaq }) {
         </div>
 
         <div className="faq-grid">
-          {faqData.map((faq, index) => (
-            <div className="faq-item" key={index}>
-              <button
-                className="faq-question"
-                onClick={() =>
-                  setOpenFaq(openFaq === index ? null : index)
-                }
-              >
-                <span className="faq-icon">{faq.icon}</span>
-
-                <h3>{faq.question}</h3>
-
-                <span
-                  className={`faq-arrow ${
-                    openFaq === index ? "open" : ""
-                  }`}
+          {faqData.map((faq, index) => {
+            // ✅ faq.icon is a lucide component — render it as a component
+            const IconComp = faq.icon;
+            return (
+              <div className="faq-item" key={index}>
+                <button
+                  className="faq-question"
+                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
                 >
-                  ▼
-                </span>
-              </button>
+                  {/* ✅ render icon component, not emoji text */}
+                  <span className="faq-icon">
+                    <IconComp size={22} strokeWidth={1.8} />
+                  </span>
 
-              <div
-                className={`faq-answer ${
-                  openFaq === index ? "open" : ""
-                }`}
-              >
-                <p>{faq.answer}</p>
+                  <h3>{faq.question}</h3>
+
+                  {/* ✅ ChevronDown icon replaces ▼ text character */}
+                  <span className={`faq-arrow ${openFaq === index ? "open" : ""}`}>
+                    <ChevronDown size={18} strokeWidth={2} />
+                  </span>
+                </button>
+
+                <div className={`faq-answer ${openFaq === index ? "open" : ""}`}>
+                  <p>{faq.answer}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="faq-contact">
           <div className="contact-card">
-            <span className="contact-emoji">💬</span>
+            {/* ✅ MessageSquare icon replaces 💬 emoji */}
+            <span className="contact-emoji">
+              <MessageSquare size={36} strokeWidth={1.5} color="#ffffff" />
+            </span>
 
             <h3>Still have questions?</h3>
 
@@ -66,7 +69,8 @@ export default function FAQSection({ faqData, openFaq, setOpenFaq }) {
               }
             >
               Contact us
-              <span className="btn-arrow">→</span>
+              {/* ✅ ArrowRight icon replaces → text */}
+              <ArrowRight size={16} strokeWidth={2} className="btn-arrow" />
             </button>
           </div>
         </div>
