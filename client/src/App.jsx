@@ -4,7 +4,7 @@ import AuthPage from "./pages/AuthPage";
 import Homepage from "./pages/Homepage";
 import DashboardPage from "./pages/Dashboard";
 import AdminPage from "./pages/AdminPage";
-import { ThemeProvider } from "./context/ThemeContext"; // ← Import ThemeProvider
+import { ThemeProvider } from "./context/ThemeContext";
 
 function App() {
   const [page, setPage] = useState(() => {
@@ -15,7 +15,6 @@ function App() {
       const user = JSON.parse(localStorage.getItem("user"));
       if (user?.isAdmin) return "admin";
     } catch {
-      // If JSON is invalid, treat as not logged in
       return "landing";
     }
 
@@ -30,7 +29,6 @@ function App() {
     go("landing");
   };
 
-  // Safely get user
   const getUser = () => {
     try {
       return JSON.parse(localStorage.getItem("user"));
@@ -41,39 +39,33 @@ function App() {
   const user = getUser();
 
   return (
-    <ThemeProvider> {/* ← Wrap everything with ThemeProvider */}
+    <ThemeProvider>
       {page === "landing" && (
-        <LandingPage
-          onJoin={() => go("auth")}
-          onAbout={() => go("about")}
-        />
+        <LandingPage onJoin={() => go("auth")} onAbout={() => go("about")} />
       )}
 
       {page === "auth" && (
         <AuthPage
-          onAuthSuccess={() => go("dashboard")}
+          onAuthSuccess={(dest) => {
+            // dest will be "admin" or "feed" — passed from LoginPage
+            if (dest === "admin") {
+              go("admin");
+            } else {
+              go("dashboard");
+            }
+          }}
           onBack={() => go("landing")}
         />
       )}
 
       {page === "about" && (
-        <Homepage
-          onJoin={() => go("auth")}
-          onBack={() => go("landing")}
-          isGuest
-        />
+        <Homepage onJoin={() => go("auth")} onBack={() => go("landing")} isGuest />
       )}
 
-      {page === "admin" && (
-        <AdminPage onLogout={handleLogout} />
-      )}
+      {page === "admin" && <AdminPage onLogout={handleLogout} />}
 
       {page === "dashboard" && (
-        <DashboardPage
-          user={user}
-          onLogout={handleLogout}
-          onHome={() => go("about")}
-        />
+        <DashboardPage user={user} onLogout={handleLogout} onHome={() => go("about")} />
       )}
     </ThemeProvider>
   );
