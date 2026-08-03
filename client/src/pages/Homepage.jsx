@@ -30,14 +30,14 @@ export default function Homepage({ onLogout, onJoin, onBack, isGuest }) {
     window.scrollTo({ top: 0, behavior: "instant" });
 
     // If arriving as guest (from "About Us"), scroll to #features after mount
-    if (isGuest && !didScrollRef.current) {
+   /* if (isGuest && !didScrollRef.current) {
       didScrollRef.current = true;
       setTimeout(() => {
         document
           .getElementById("features")
           ?.scrollIntoView({ behavior: "smooth" });
       }, 120);
-    }
+    }*/
 
     const handleScroll = () => {
       setIsHero(window.scrollY < window.innerHeight - 100);

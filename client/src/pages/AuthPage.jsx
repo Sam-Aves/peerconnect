@@ -254,7 +254,6 @@ const PaperCallout = ({ children, warn }) => (
 );
 
 // ─── LOGIN PAGE ────────────────────────────────────────────────────────────────
-// FIX: onAuthSuccess prop added so it can be called after successful login
 function LoginPage({ onSwitch, onAuthSuccess, onBack }) {
   const [email,setEmail]=useState("");
   const [pw,setPw]=useState("");
@@ -356,7 +355,6 @@ function LoginPage({ onSwitch, onAuthSuccess, onBack }) {
             display:"flex", alignItems:"center", gap:3 }}>
           <ChevronLeft size={12}/> Back
         </button>
-        {/* FIX: "Forgot password?" placeholder — alert until backend route exists */}
         <button
           onClick={() => alert("Password reset coming soon. Contact your admin for now.")}
           style={{ background:"none", border:"none", cursor:"pointer", padding:0,
@@ -862,12 +860,11 @@ export default function AuthPage({ onAuthSuccess, onBack }) {
               transform: flipping ? "translateY(6px)" : "translateY(0)",
               transition: flipping ? "none" : "opacity 0.3s ease 0.12s, transform 0.3s ease 0.12s",
             }}>
-              {/* FIX: pass onAuthSuccess and onBack down to LoginPage */}
               {displayed==="login"
                 ? <LoginPage
                     onSwitch={() => switchTo("register")}
                     onAuthSuccess={onAuthSuccess}
-                    onBack={onBack}
+                    onBack={onBack}  // ← Now properly passed down!
                   />
                 : <RegisterPage onSwitch={() => switchTo("login")} />
               }
