@@ -10,7 +10,7 @@ Built for the **Software Engineering Lab (CSE-3642)**, International Islamic Uni
 
 ## The Problem
 
-A structured survey of 19–20 university students across Bangladesh (IIUC, BRAC, Dhaka University, NSTU, BUET, RUET, and others) found:
+A structured survey of university students across Bangladesh found:
 
 - **63%** struggled most with making friends/connections when they arrived in a new city.
 - **56%** struggled with understanding their new university environment.
@@ -138,9 +138,9 @@ npm run dev
 
 ## Contributors
 
-- **Asliraf Samaylan** (C233446)
-- **Nusrat Jahan** (C233464)
-- **Samiha Akter** (C233467)
+- **Asliraf Samaylan**
+- **Nusrat Jahan**
+- **Samiha Akter**
 
 **Supervisor:**  
 **Md. Sadman Hafiz**  
